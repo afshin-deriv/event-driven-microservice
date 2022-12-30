@@ -1,0 +1,11 @@
+{
+  "name": "trade",
+  "version": "1.0.0",
+  "description": "Simple trade microservice",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Afshin",
+  "license": "MIT"
+}
