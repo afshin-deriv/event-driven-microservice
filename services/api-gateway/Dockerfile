@@ -1,9 +1,8 @@
-FROM node:16
+FROM node:19-alpine
 
 WORKDIR /usr/src/app
-# copy base config
 COPY package.json ./
-RUN npm install
+RUN npm install --silent
 COPY . .
 
 EXPOSE 3000
