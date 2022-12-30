@@ -1,14 +1,16 @@
 const express = require('express');
-
-const app = express();
-const port = 3000;
+const redis = require('redis');
 
 
-app.get('/', (req, res) => {
-    res.send('Trading is up!');
-});
+(async () => {
 
-
-app.listen(port, () => {
-    console.log(`Trading is listening on port ${port}`); 
-});
+    const client = redis.createClient();
+  
+    const subscriber = client.duplicate();
+  
+    await subscriber.connect();
+  
+    await subscriber.subscribe('trade', (message) => {
+      console.log(message); 
+    });
+})();
