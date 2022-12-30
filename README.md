@@ -26,7 +26,7 @@ docker-compose down --rmi all
 
 
 ## Environments
-This Compose file contains the following environment variables:
+The Compose file contains the following environment variables:
 
 * `POSTGRES_USER` the default value is **postgres**
 * `POSTGRES_PASSWORD` the default value is **changeme**
