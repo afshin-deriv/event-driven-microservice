@@ -14,3 +14,11 @@ A simple event-driven microservice trading system written in Node.js
 * Clone or download this repository
 * Go inside of directory,  `cd Case-study-Event-driven-architecture`
 * Run this command `docker-compose up -d`
+
+
+## Environments
+This Compose file contains the following environment variables:
+
+* `POSTGRES_USER` the default value is **postgres**
+* `POSTGRES_PASSWORD` the default value is **changeme**
+* `PGADMIN_PORT` the default value is **5432**
