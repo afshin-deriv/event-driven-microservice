@@ -27,8 +27,9 @@ services:
   trade:
     depends_on:
       - redis
-    build: ./trade
-    container_name: trade
+    build:
+      context: ./services/trade
+      dockerfile: Dockerfile
     ports:
       - 3000:3000
     links:
@@ -40,10 +41,11 @@ services:
   payment:
     depends_on:
       - redis
-    build: ./payment
-    container_name: payment
+    build:
+      context: ./services/payment
+      dockerfile: Dockerfile
     ports:
-      - 3001:3001
+      - 3001:3000
     links:
       - redis:redis
     restart: always
@@ -53,10 +55,11 @@ services:
   reporting:
     depends_on:
       - redis
-    build: ./reporting
-    container_name: report
+    build:
+      context: ./services/reporting
+      dockerfile: Dockerfile
     ports:
-      - 3002:3002
+      - 3002:3000
     links:
       - redis:redis
     restart: always
