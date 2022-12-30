@@ -12,6 +12,10 @@ app.use(bodyParser.urlencoded({
   extended: true
 })); 
 
+(async () => {
+ await publisher.connect();
+})();
+
 app.post('/', (req, res) => {
     (async () => { 
         res.send('Your request received!');
@@ -19,7 +23,6 @@ app.post('/', (req, res) => {
         console.log(req.body.type);
         console.log(req.body.amount);
         console.log(req.body.symbol);
-        await publisher.connect();
         // await publisher.publish('trade', JSON.stringify(req));
     })();
 });
