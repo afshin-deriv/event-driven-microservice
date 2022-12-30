@@ -41,9 +41,9 @@ services:
     depends_on:
       - redis
     build: ./payment
-    container_name: trade
+    container_name: payment
     ports:
-      - 3000:3000
+      - 3001:3001
     links:
       - redis:redis
     restart: always
@@ -54,9 +54,9 @@ services:
     depends_on:
       - redis
     build: ./reporting
-    container_name: trade
+    container_name: report
     ports:
-      - 3000:3000
+      - 3002:3002
     links:
       - redis:redis
     restart: always
