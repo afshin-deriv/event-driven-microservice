@@ -16,10 +16,14 @@ Proof of Concept for a scalable simple trading Application, based on simplified 
 * docker >= 17.12.0+
 * docker-compose
 
-## Quick Start
+## Running the entire application stack
 * Clone or download this repository
 * Go inside of directory,  `cd Case-study-Event-driven-architecture`
-* Run this command `docker-compose up -d`
+```
+docker-compose build --no-cache
+docker-compose up -d
+docker-compose down --rmi all
+```
 
 
 ## Environments
