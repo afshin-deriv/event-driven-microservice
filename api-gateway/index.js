@@ -15,11 +15,11 @@ app.use(bodyParser.urlencoded({
 app.post('/', (req, res) => {
     (async () => { 
         res.send('Your request received!');
-        // console.log(req.body.user-id);
-        // console.log(req.body.type);
-        // console.log(req.body.amount);
-        // console.log(req.body.symbol);
-        // await publisher.connect();
+        console.log(req.body.user_id);
+        console.log(req.body.type);
+        console.log(req.body.amount);
+        console.log(req.body.symbol);
+        await publisher.connect();
         // await publisher.publish('trade', JSON.stringify(req));
     })();
 });
