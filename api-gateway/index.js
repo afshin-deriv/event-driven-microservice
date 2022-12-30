@@ -1,8 +1,10 @@
 const express = require('express');
 const redis = require('redis');
 const bodyParser = require('body-parser')
+const { body, validationResult } = require('express-validator');
 
-const publisher = redis.createClient();
+const publisher  = redis.createClient();
+const subscriber = redis.createClient().duplicate();
 
 const app = express();
 const port = 3000;
@@ -13,17 +15,32 @@ app.use(bodyParser.urlencoded({
 })); 
 
 (async () => {
- await publisher.connect();
+    await subscriber.connect();
+    await publisher.connect();
 })();
 
-app.post('/', (req, res) => {
+
+app.post('/',
+// Request validation
+body('user_id').isInt(),
+body('type').isAscii(),
+body('amount').isFloat(),
+body('symbol').isAscii(),
+
+// Response generation
+(req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     (async () => { 
-        res.send('Your request received!');
-        console.log(req.body.user_id);
-        console.log(req.body.type);
-        console.log(req.body.amount);
-        console.log(req.body.symbol);
-        // await publisher.publish('trade', JSON.stringify(req));
+        // console.log(req.body.user_id);
+        // console.log(req.body.type);
+        // console.log(req.body.amount);
+        // console.log(req.body.symbol);
+        await publisher.publish('trade', JSON.stringify(req.body));
+        res.send("OK!\n");
     })();
 });
 
