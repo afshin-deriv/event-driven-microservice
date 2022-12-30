@@ -20,8 +20,7 @@ Proof of Concept for a scalable simple trading Application, based on simplified 
 * Clone or download this repository
 * Go inside of directory,  `cd Case-study-Event-driven-architecture`
 ```
-docker-compose build --no-cache
-docker-compose up -d
+docker-compose up -d --build
 docker-compose down --rmi all
 ```
 

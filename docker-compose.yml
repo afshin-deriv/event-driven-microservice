@@ -3,8 +3,6 @@ version: "3.9"
 services:
   redis:
     image: redis
-    ports:
-      - "6379:6379"
     networks:
       - redis_net
     restart: always
@@ -52,6 +50,20 @@ services:
     build:
       context: ./services/reporting
       dockerfile: Dockerfile
+    links:
+      - redis:redis
+    restart: always
+    networks:
+      - redis_net
+
+  api-gateway:
+    depends_on:
+      - redis
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
     links:
       - redis:redis
     restart: always

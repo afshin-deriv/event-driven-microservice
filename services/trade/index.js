@@ -1,11 +1,10 @@
 const redis = require('redis');
-const publisher  = redis.createClient();
+const client = redis.createClient({ url:'redis://redis:6379' });
 
 (async () => {
 
-    const client = redis.createClient();
     const subscriber = client.duplicate();
-    await publisher.connect();
+    await client.connect();
     await subscriber.connect();
   
     await subscriber.subscribe('trade', (message) => {
@@ -15,6 +14,6 @@ const publisher  = redis.createClient();
       // Check & Parse request
 
       // Payment
-      publisher.publish('api','{"user_id":100}');
+      client.publish('api','{"user_id":100}');
     });
 })();

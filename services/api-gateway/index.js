@@ -3,8 +3,8 @@ const redis = require('redis');
 const bodyParser = require('body-parser')
 const { body, validationResult } = require('express-validator');
 
-const publisher  = redis.createClient();
-const subscriber = redis.createClient().duplicate();
+const client  = redis.createClient({ url:'redis://redis:6379' });
+const subscriber = client.duplicate();
 
 const app = express();
 const port = 3000;
@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({
 
 (async () => {
     await subscriber.connect();
-    await publisher.connect();
+    await client.connect();
 })();
 
 
@@ -39,7 +39,7 @@ body('symbol').isAscii(),
         // console.log(req.body.type);
         // console.log(req.body.amount);
         // console.log(req.body.symbol);
-        await publisher.publish('trade', JSON.stringify(req.body));
+        await client.publish('trade', JSON.stringify(req.body));
         res.send("OK!\n");
     })();
 });
