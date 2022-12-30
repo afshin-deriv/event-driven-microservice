@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  redis-service:
+  redis:
     image: redis
     ports:
       - "6379:6379"
@@ -21,7 +21,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - postgres
+      - postgres_net
     restart: unless-stopped
 
   trade:
@@ -29,7 +29,6 @@ services:
       - redis
     build: ./trade
     container_name: trade
-    command:
     ports:
       - 3000:3000
     links:
@@ -43,7 +42,6 @@ services:
       - redis
     build: ./payment
     container_name: trade
-    command:
     ports:
       - 3000:3000
     links:
@@ -57,7 +55,6 @@ services:
       - redis
     build: ./reporting
     container_name: trade
-    command:
     ports:
       - 3000:3000
     links:
@@ -68,6 +65,8 @@ services:
 
 networks:
   redis_net:
+    driver: bridge
+  postgres_net:
     driver: bridge
 volumes:
     postgres:
