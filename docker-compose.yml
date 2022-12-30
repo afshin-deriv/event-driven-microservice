@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+  redis-service:
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - redis_net
+    restart: always
+
+  postgres:
+    container_name: postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /data/postgres
+    volumes:
+       - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  trade:
+    depends_on:
+      - redis
+    build: ./trade
+    container_name: trade
+    command:
+    ports:
+      - 3000:3000
+    links:
+      - redis:redis
+    restart: always
+    networks:
+      - redis_net
+
+  payment:
+    depends_on:
+      - redis
+    build: ./payment
+    container_name: trade
+    command:
+    ports:
+      - 3000:3000
+    links:
+      - redis:redis
+    restart: always
+    networks:
+      - redis_net
+
+  reporting:
+    depends_on:
+      - redis
+    build: ./reporting
+    container_name: trade
+    command:
+    ports:
+      - 3000:3000
+    links:
+      - redis:redis
+    restart: always
+    networks:
+      - redis_net
+
+networks:
+  redis_net:
+    driver: bridge
+volumes:
+    postgres:
