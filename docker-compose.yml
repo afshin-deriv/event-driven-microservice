@@ -18,8 +18,6 @@ services:
       PGDATA: /data/postgres
     volumes:
        - postgres:/data/postgres
-    ports:
-      - "5432:5432"
     networks:
       - postgres_net
     restart: unless-stopped
@@ -30,8 +28,6 @@ services:
     build:
       context: ./services/trade
       dockerfile: Dockerfile
-    ports:
-      - 3000:3000
     links:
       - redis:redis
     restart: always
@@ -44,8 +40,6 @@ services:
     build:
       context: ./services/payment
       dockerfile: Dockerfile
-    ports:
-      - 3001:3000
     links:
       - redis:redis
     restart: always
@@ -58,8 +52,6 @@ services:
     build:
       context: ./services/reporting
       dockerfile: Dockerfile
-    ports:
-      - 3002:3000
     links:
       - redis:redis
     restart: always

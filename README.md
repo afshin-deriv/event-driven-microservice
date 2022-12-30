@@ -1,6 +1,12 @@
-# Case study: Event-driven architecture
+# Event-Driven Microservices Backend Case study
 
-A simple event-driven microservice trading system written in Node.js
+Proof of Concept for a scalable simple trading Application, based on simplified event-driven microservices architecture and Docker containers. :whale:
+
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+
+[![forthebadge](https://forthebadge.com/images/badges/made-with-javascript.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
+
 
 - Trade microservice: handles buy and sell transactions and publishes respective events
 - Payment microservice: manages the funds (deposits and withdrawals) for the users and published respective events
