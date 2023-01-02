@@ -1,5 +1,10 @@
 const redis = require('redis');
-const client = redis.createClient({ url:'redis://redis:6379' });
+
+const REDIS_HOST = process.env.REDIS_HOST || 'redis';
+const REDIS_PORT = process.env.REDIS_PORT || '6379';
+require('dotenv').config();
+
+const client = redis.createClient({ url:`redis://${REDIS_HOST}:${REDIS_PORT}` });
 
 (async () => {
 
