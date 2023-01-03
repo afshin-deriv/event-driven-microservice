@@ -22,6 +22,14 @@ app.use(bodyParser.urlencoded({
   extended: true
 })); 
 
+(async () => {
+  client.xgroup('CREATE', 'api', 'trade', '$', 'MKSTREAM', function (err) {
+    if (err) {
+      return console.error(err);
+    }
+  });
+})();
+
 
 app.post('/',
   // Request validation
@@ -36,22 +44,24 @@ app.post('/',
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
+    (async () => {
+      const data = JSON.stringify({
+        "user_id": req.body.user_id,
+        "type": req.body.type,
+        "amount": req.body.amount,
+        "symbol": req.body.symbol
+      });
+      await client.xadd('api', '*', 'request', data, function (err) {
+        if (err) {
+          return console.error(err);
+        }
 
-      (async () => {
-        const data = JSON.stringify({
-          "user_id": req.body.user_id,
-          "type": req.body.type,
-          "amount": req.body.amount,
-          "symbol": req.body.symbol
-        });
-
-        await client.xadd('api', "*", "request", data );
         res.send("OK!\n");
-      })();
+      });
+    })();
 });
 
 
 app.listen(port, () => {
     console.log(`API-Gateway is listening on port ${port}`); 
 });
-
