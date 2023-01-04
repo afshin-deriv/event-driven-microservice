@@ -1,89 +1,46 @@
-const Redis = require("ioredis");
+const Redis = require('ioredis');
+const { v4: uuidv4 } = require('uuid');
+
+
+const REDIS_HOST = process.env.REDIS_HOST || 'redis';
+const REDIS_PORT = process.env.REDIS_PORT || '6379';
 require('dotenv').config();
 
-const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-const REDIS_PORT = process.env.REDIS_PORT || '6379';
-
-const redis_sub = new Redis({
+const client = new Redis({
     host: REDIS_HOST,
-    port: REDIS_PORT
+    port: REDIS_PORT,
 });
 
-const redis_pub = new Redis({
-    host: REDIS_HOST,
-    port: REDIS_PORT
-});
+const STREAMS_KEY = "api";
+const GROUP_NAME = "trade-group";
+const CONSUMER_ID = "consumer-".concat(uuidv4());
 
-redis_sub.subscribe("trade", (err, count) => {
-    if (err) {
-        console.error("Failed to subscribe: %s", err.message);
-    } else {
-        console.log(`Subscribed successfully! This client is currently subscribed to ${count}`);
+
+
+async function main () {
+  await client.xgroup('CREATE', STREAMS_KEY,
+                       GROUP_NAME, '$', 'MKSTREAM')
+                      .catch(() => console.log(`Consumer ${CONSUMER_ID} group already exists`));
+
+  while (true) {
+    const [[, records]] = await client.xreadgroup(
+      'GROUP', GROUP_NAME, CONSUMER_ID, 'BLOCK', '0',
+      'COUNT', '1', 'STREAMS', STREAMS_KEY, '>');
+    for (const [id, [, request]] of records) {
+      await processAndAck(id, request);
     }
-});
+  }
+}
 
-redis_sub.subscribe("payment_response", (err, count) => {
-    if (err) {
-        console.error("Failed to subscribe: %s", err.message);
-    } else {
-        console.log(`Subscribed successfully! This client is currently subscribed to ${count}`);
-    }
-});
+async function processAndAck (id, request) {
+  const req = JSON.parse(request);
 
-redis_sub.on("message", (channel, message) => {
-    console.log(`Received ${message} from ${channel}`);
-    
-    if (channel == "trade") {
-        const payment_channel = "payment";
-        request = JSON.parse(message);
-        switch(request.type) {
-            case "BUY": {
-                // TODO: check the price and amount from market
-                redis_pub.set(request.id, message);
-                const request_withdraw = {"id" : request.id,
-                                          "user_id" :    request.user_id,
-                                          "amount" : request.count * request.price,
-                                          "type" : "WITHDRAW"};
-                redis_pub.publish(payment_channel, JSON.stringify(request_withdraw));
-                break;
-            }
-            case "SELL": {
-                // TODO: check the price and amount from market
-                redis_pub.set(request.id, message);
-                const request_withdraw = {"id" : request.id,
-                                          "user_id" :    request.user_id,
-                                          "amount" : request.count * request.price,
-                                          "type" : "DEPOSIT"};
-                redis_pub.publish(payment_channel, JSON.stringify(request_withdraw));
-                break;
-            }
-            default: {
-                const resp = { "status" : "ERROR" , "response" : "Undefined trade command" };
-                redis_pub.publish(response_channel, message);
-            }
-        }
-    } else if (channel == "payment_response") {
-        const response_channel = "trade_response";
-        const response = JSON.parse(message);
+  await client.xack(STREAMS_KEY, GROUP_NAME, id);
+ 
+  if (request) {
+    console.log(`id: ${id}, user_id: ${req.user_id}, type: ${req.type}, amount: ${req.amount}, symbol: ${req.symbol}`);
+  }
+}
 
-        if (response.status == "OK") {
-            redis_pub.get(response.id, (err, result) => {
-                  if (result) {
-                    console.log(result);
-                    const req = JSON.parse(result);
-                    if (req.type == "BUY") {
-                        const resp = { "status" : "OK" ,
-                                       "response" : `amount of ${req.count} of symbol ${req.symbol} at price ${req.price} has been bought`};
-                        redis_pub.publish(response_channel, json.stringify(resp));
-                    } else {
-                        const resp = { "status" : "OK" ,
-                                       "response" : `amount of ${req.count} of symbol ${req.symbol} at price ${req.price} has been soled`};
-                        redis_pub.publish(response_channel, json.stringify(resp));
-                    }
-                  }
-            });
-        } else {
-            redis_pub.publish(response_channel, message);
-        }
-    }
-});
+main().catch(err => console.error(err));
+
