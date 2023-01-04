@@ -1,5 +1,6 @@
-const express = require('express');
 const Redis = require('ioredis');
+const WebSocketServer = require('ws');
+
 
 const REDIS_HOST = process.env.REDIS_HOST || 'redis';
 const REDIS_PORT = process.env.REDIS_PORT || '6379';
@@ -10,17 +11,8 @@ const client = new Redis({
     port: REDIS_PORT,
 });
 
-const bodyParser = require('body-parser')
-const { body, validationResult } = require('express-validator');
-
-
-const app = express();
 const port = 3000;
-
-app.use( bodyParser.json() );
-app.use(bodyParser.urlencoded({ 
-  extended: true
-})); 
+const STREAMS_KEY = "api";
 
 (async () => {
   client.xgroup('CREATE', 'api', 'trade', '$', 'MKSTREAM', function (err) {
@@ -30,38 +22,42 @@ app.use(bodyParser.urlencoded({
   });
 })();
 
+const wss = new WebSocketServer.Server({ port: port })
+wss.on("connection", ws => {
+  console.log("New ws client connected");
+  // sending message
+  ws.on("message", data => {
+      const req = JSON.parse(data);
+      // Simple validation
+      if ( req.user_id && req.type && req.amount && req.symbol ) {
+        (async () => {
+          const data = JSON.stringify({
+            "user_id": req.user_id,
+            "amount":  req.amount,
+            "symbol":  req.symbol,
+            "type":    req.type
+          });
 
-app.post('/',
-  // Request validation
-  body('user_id').isInt(),
-  body('type').isAscii(),
-  body('amount').isFloat(),
-  body('symbol').isAscii(),
-
-  // Response generation
-  (req, res) => {
-    const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+          await client.xadd(STREAMS_KEY, '*', 'request', data, function (err) {
+            if (err) {
+              return console.error(err);
+            }
+          });
+        })();
+      } else {
+        ws.send("Request format isn't valid!");
       }
-    (async () => {
-      const data = JSON.stringify({
-        "user_id": req.body.user_id,
-        "type": req.body.type,
-        "amount": req.body.amount,
-        "symbol": req.body.symbol
-      });
-      await client.xadd('api', '*', 'request', data, function (err) {
-        if (err) {
-          return console.error(err);
-        }
+      // Debug log
+      console.log(`user_id: ${obj.user_id}, type: ${obj.type}, amount: ${obj.amount}, symbol: ${obj.symbol}`);
+  });
 
-        res.send("OK!\n");
-      });
-    })();
+  ws.on("close", () => {
+      console.log("The client has connected");
+  });
+
+  ws.onerror = function () {
+      console.log("Some Error occurred")
+  }
 });
 
-
-app.listen(port, () => {
-    console.log(`API-Gateway is listening on port ${port}`); 
-});
+console.log(`API-Gateway is listening on port ${port}`);
