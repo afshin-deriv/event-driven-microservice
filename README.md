@@ -33,9 +33,11 @@ The Compose file contains the following environment variables:
 * `PGADMIN_PORT` the default value is **5432**
 
 
-## Test
+## How-To
 
 ```sh
-npm install -g wscat
-wscat -c 127.0.0.1:8080 -x '{"user_id":<USER-ID>, "type": "sell | buy", "amount": "<AMOUNT>", "symbol": "<SYMBOL-NAME>"}'
+$ npm install -g wscat
+$ wscat -c 127.0.0.1:8080
+
+{"user_id":<USER-ID>, "type": "sell | buy", "amount": "<AMOUNT>", "symbol": "<SYMBOL-NAME>"}
 ```
