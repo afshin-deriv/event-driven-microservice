@@ -10,17 +10,19 @@ wss.on("connection", ws => {
   console.log("New client connected");
 
   ws.on("message", data => {
+    try {
       const req = JSON.parse(data);
-      validData = redis.validateAndParse(req);
-      if ( validData ) {
-        (async () => {
-          await redis.addToStream(validData);
-        })();
-      } else {
-        ws.send("Request format isn't valid!");
-      }
-      // Debug log
+      valid_data = redis.validateAndParse(req);
+      (async () => {
+        await redis.addToStream(valid_data);
+      })();
+      ws.send(`${req.type} request received!`);
+
+      // TODO: Will remove this log after development phase
       console.log(`user_id: ${req.user_id}, type: ${req.type}, amount: ${req.amount}, symbol: ${req.symbol}`);
+    } catch (e) {
+      ws.send("Request format isn't valid!", e);
+    }
   });
 
   ws.on("close", () => {
