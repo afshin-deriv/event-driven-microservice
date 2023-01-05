@@ -25,7 +25,7 @@ const users = new Map();
 async function send_response(message) {
     console.log(`Send ${message}`);
     const response_channel = "payment_response";
-    await redis_pub.xadd(response_channel, '*', 'response', message, function (err) {
+    await redis_pub.xadd(response_channel, '*', 'payment_response', message, function (err) {
         if (err) {
             return console.error(err);
         }
