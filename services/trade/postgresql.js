@@ -13,31 +13,25 @@ const credentials = {
     database: "trade",
     password: POSTGRESQL_PASS,
     port: POSTGRESQL_PORT,
-  };
+};
 
 
 const postgres = {
 
-    addToStream: function (data) { 
-        client.xadd(STREAMS_KEY, '*', 'request', data, function (err) {
-            if (err) {
-              return console.error(err);
-            }
-          });
+    checkSymbol: async function (symbol) {
+        const pool = new Pool(credentials);
+        const symbol = await pool.query("SELECT * from symbols");
+        await pool.end();
+
+        return symbol;
     },
 
-    validateAndParse: function (data) {
-        if ( !data.user_id && !data.type && !data.amount && !data.symbol) {
-            throw 'Invalid Request format';
-        }
-        const jsonData = JSON.stringify({
-            "user_id": data.user_id,
-            "amount":  data.amount,
-            "symbol":  data.symbol,
-            "type":    data.type
-        });
+    marketCalendar: async function (market, date) {
+        const pool = new Pool(credentials);
+        const market = await pool.query(`SELECT * from markets where market = ${market} and date = ${date}`);
+        await pool.end();
 
-	    return jsonData;
+        return market;
     }
 };
 

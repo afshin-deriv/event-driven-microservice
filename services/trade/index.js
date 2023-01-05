@@ -1,5 +1,6 @@
 const Redis = require('ioredis');
 const { v4: uuidv4 } = require('uuid');
+const redis = require('./postgresql.js');
 
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || '6379';
