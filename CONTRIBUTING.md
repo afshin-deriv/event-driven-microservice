@@ -15,7 +15,7 @@ $ npm install # install the dependencies of the project
 
 There is a `Dockerfile` for every microservice, so you can build and test it separately in a Docker container or by running `npm start`.
 
-### Commonly used techniques for debugging
+### Commonly used commands for debugging
 
 ---------------------
 ```bash
