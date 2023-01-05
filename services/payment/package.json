@@ -10,7 +10,8 @@
   "author": "Afshin & Saman",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^16.0.3",
     "ioredis": "^5.2.4",
-    "dotenv" : "^16.0.3"
+    "uuid": "^9.0.0"
   }
 }

@@ -1,8 +1,9 @@
-const Redis = require("ioredis");
-require('dotenv').config();
+const Redis = require('ioredis');
+const { v4: uuidv4 } = require('uuid');
 
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || '6379';
+require('dotenv').config();
 
 const redis_sub = new Redis({
     host: REDIS_HOST,
@@ -14,20 +15,39 @@ const redis_pub = new Redis({
     port: REDIS_PORT
 });
 
-redis_sub.subscribe("payment", (err, count) => {
-    if (err) {
-        console.error("Failed to subscribe: %s", err.message);
-    } else {
-        console.log(`Subscribed successfully! This client is currently subscribed to ${count}`);
-    }
-});
+const STREAMS_KEY = "payment";
+const GROUP_NAME = "payment-group";
+const CONSUMER_ID = "consumer-".concat(uuidv4());
 
 // TODO: Use postgress
 const users = new Map();
 
-redis_sub.on("message", (channel, message) => {
-      console.log(`Received ${message} from ${channel}`);
-      const response_channel = "payment_response";
+async function send_response(message) {
+    console.log(`Send ${message}`);
+    const response_channel = "payment_response";
+    await redis_pub.xadd(response_channel, '*', 'response', message, function (err) {
+        if (err) {
+            return console.error(err);
+        }
+    });
+}
+
+async function recieve_request() {
+    await redis_sub.xgroup('CREATE', STREAMS_KEY, GROUP_NAME, '$', 'MKSTREAM')
+        .catch(() => console.log(`Consumer ${CONSUMER_ID} group already exists`));
+
+    while (true) {
+        const [[, records]] = await redis_sub.xreadgroup(
+            'GROUP', GROUP_NAME, CONSUMER_ID, 'BLOCK', '0',
+            'COUNT', '1', 'STREAMS', STREAMS_KEY, '>');
+        for (const [id, [, request]] of records) {
+            await process_request(request);
+        }
+    }
+}
+
+async function process_request(message) {
+      console.log(`Received ${message}`);
       request = JSON.parse(message);
       switch(request.type) {
         case "DEPOSIT": {
@@ -36,12 +56,12 @@ redis_sub.on("message", (channel, message) => {
                 const response = { "status" : "OK", 
                                   "response" : `Deposit to account ${request.user_id} with amount of ${request.amount} has been done`,
                                   "id" : request.id};
-                redis_pub.publish(response_channel, JSON.stringify(response));
+                await send_response(JSON.stringify(response));
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                redis_pub.publish(response_channel, JSON.stringify(response));
+                await send_response(JSON.stringify(response));
             }
             break;
         }
@@ -52,18 +72,18 @@ redis_sub.on("message", (channel, message) => {
                     const response = { "status" : "OK", 
                                        "response" : `Withdraw from account ${request.user_id} with amount of ${request.amount} has been done`,
                                        "id" : request.id};
-                    redis_pub.publish(response_channel, JSON.stringify(response));
+                    await send_response(JSON.stringify(response));
                 } else {
                     const response = { "status" : "ERROR", 
                                       "response" : `User ${request.user_id} has not sufficent amount`,
                                       "id" : request.id};
-                    redis_pub.publish(response_channel, JSON.stringify(response));
+                    await send_response(JSON.stringify(response));
                 }
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                redis_pub.publish(response_channel, JSON.stringify(response));
+                await send_response(JSON.stringify(response));
             }
             break;
         }
@@ -73,7 +93,7 @@ redis_sub.on("message", (channel, message) => {
             const response = { "status" : "OK", 
                               "response" : `User with id ${id} has been created`,
                               "id" : request.id};
-            redis_pub.publish(response_channel, JSON.stringify(response));
+            await send_response(JSON.stringify(response));
             break;
         }
         case "REMOVE_USER":{
@@ -82,12 +102,12 @@ redis_sub.on("message", (channel, message) => {
                 const response = { "status" : "OK", 
                                   "response" : `User ${request.user_id} with amount of ${request.amount} has been deleted`,
                                   "id" : request.id};
-                redis_pub.publish(response_channel, JSON.stringify(response));
+                await send_response(JSON.stringify(response));
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                redis_pub.publish(response_channel, JSON.stringify(response));
+                await send_response(JSON.stringify(response));
             }
             break;
         }
@@ -98,12 +118,12 @@ redis_sub.on("message", (channel, message) => {
                                   "id" : request.id,
                                   "user_id" : request.user_id,
                                   "amount" : users.get(request.user_id)};
-                redis_pub.publish(response_channel, JSON.stringify(response));
+                await send_response(JSON.stringify(response));
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                redis_pub.publish(response_channel, JSON.stringify(response));
+                await send_response(JSON.stringify(response));
             }
             break;
         }
@@ -111,7 +131,9 @@ redis_sub.on("message", (channel, message) => {
             const response = { "status" : "ERROR", 
                               "response" : `Undefined Type ${request.type}`,
                               "id" : request.id};
-            redis_pub.publish(response_channel, JSON.stringify(response));
+            await send_response(JSON.stringify(response));
         }
       }
-});
+}
+
+recieve_request().catch(err => console.error(err));
