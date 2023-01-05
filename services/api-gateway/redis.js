@@ -22,9 +22,9 @@ const redis = {
     },
 
     validateAndParse: function (data) {
-        unless(data.user_id && data.type && data.amount && data.symbol, function() {
+        if ( !data.user_id && !data.type && !data.amount && !data.symbol) {
             throw 'Invalid Request format';
-        });
+        }
         const jsonData = JSON.stringify({
             "user_id": data.user_id,
             "amount":  data.amount,

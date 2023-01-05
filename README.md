@@ -39,7 +39,7 @@ The Compose file contains the following environment variables:
 $ npm install -g wscat
 $ wscat -c 127.0.0.1:8080
 
-{"user_id":<USER-ID>, "type": "sell | buy", "amount": "<AMOUNT>", "symbol": "<SYMBOL-NAME>"}
+{"user_id":<USER-ID>, "type": "SELL | BUY", "amount": "<AMOUNT>", "symbol": "<SYMBOL-NAME>"}
 ```
 ### Payment Service
 Read request from **payment** stream channel, and response in **payment-response** channel
