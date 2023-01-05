@@ -1,7 +1,7 @@
 const Redis = require('ioredis');
 require('dotenv').config();
 
-const REDIS_HOST = process.env.REDIS_HOST || 'redis';
+const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || '6379';
 const STREAMS_KEY = "api";
 

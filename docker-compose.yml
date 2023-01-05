@@ -26,6 +26,8 @@ services:
     build:
       context: ./services/trade
       dockerfile: Dockerfile
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
     links:
       - redis:redis
     restart: always
@@ -38,6 +40,8 @@ services:
     build:
       context: ./services/payment
       dockerfile: Dockerfile
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
     links:
       - redis:redis
     restart: always
@@ -50,6 +54,8 @@ services:
     build:
       context: ./services/reporting
       dockerfile: Dockerfile
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
     links:
       - redis:redis
     restart: always
@@ -62,6 +68,8 @@ services:
     build:
       context: ./services/api-gateway
       dockerfile: Dockerfile
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
     ports:
       - "3000:3000"
     links:
