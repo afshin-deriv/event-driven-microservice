@@ -4,7 +4,7 @@ Hi! I'm really excited that you are interested in contributing to this project. 
 
 ## Development Setup
 
-You will need [Node.js](https://nodejs.org) **version 19+**, [docker-compose](https://docs.docker.com/compose/) and [npm](https://www.npmjs.com/).
+You will need [Node.js](https://nodejs.org) **version 16+**, [docker-compose](https://docs.docker.com/compose/) and [npm](https://www.npmjs.com/).
 
 After cloning the repo, run:
 
