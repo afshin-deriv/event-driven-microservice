@@ -83,7 +83,7 @@ async function processPaymentResponse (id, message) {
 async function ask_payment(message) {
     console.log(`Send message to payment ${message}`);
     const channel = "payment";
-    await redis_payment.xadd(channel, '*', 'payment', message, function (err) {
+    await client.xadd(channel, '*', 'payment', message, function (err) {
         if (err) {
             return console.error(err);
         }
@@ -117,7 +117,7 @@ async function processAndAck (id, message) {
       }
       default: {
           const resp = { "status" : "ERROR" , "response" : "Undefined trade command" };
-          await send_response(message);
+          await send_response(JSON.stringify(resp));
       }
   }
 }
