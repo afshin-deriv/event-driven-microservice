@@ -41,3 +41,93 @@ $ wscat -c 127.0.0.1:8080
 
 {"user_id":<USER-ID>, "type": "sell | buy", "amount": "<AMOUNT>", "symbol": "<SYMBOL-NAME>"}
 ```
+### Payment Service
+Read request from **payment** stream channel, and response in **payment-response** channel
+
+#### Create user
+```yaml
+request
+{
+  "id": "message identifier",
+  "type": "ADD_USER"
+}
+
+response
+{
+  "id": "request message identifier",
+  "status": "OK/ERROR",
+  "user_id": "New user identifier",
+  "message": "descriptive message",
+}
+```
+#### Remove user
+```yaml
+request
+{
+  "id": "message identifier",
+  "type": "REMOVE_USER",
+  "user_id": "user identifier"
+}
+
+response
+{
+  "id": "request message identifier",
+  "status": "OK/ERROR",
+  "user_id": "deleted user identifier",
+  "message": "descriptive message",
+}
+```
+
+#### Deposit
+```yaml
+request
+{
+  "id": "message identifier",
+  "type": "DEPOSIT",
+  "user_id": "user identifier",
+  "amount": "amount to add to user account"
+}
+
+response
+{
+  "id": "request message identifier",
+  "status": "OK/ERROR",
+  "message": "descriptive message",
+}
+```
+
+#### Withdraw
+```yaml
+request
+{
+  "id": "message identifier",
+  "type": "WITHDRAW",
+  "user_id": "user identifier",
+  "amount": "amount to remove from user account"
+}
+
+response
+{
+  "id": "request message identifier",
+  "status": "OK/ERROR",
+  "message": "descriptive message"
+}
+```
+#### User info
+```yaml
+request
+{
+  "id": "message identifier",
+  "type": "USER_INFO",
+  "user_id": "user identifier"
+}
+
+response
+{
+  "id": "request message identifier",
+  "status": "OK/ERROR",
+  "user_id": "user identifier",
+  "amount": "Amount in user account",
+  "message": "descriptive message"
+}
+```
