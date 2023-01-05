@@ -131,3 +131,45 @@ response
   "message": "descriptive message"
 }
 ```
+### Trade Service
+Read request from **api** stream channel, and response in **api-response** channel
+
+#### Purchase
+```yaml
+request
+{
+  "id": "message identifier",
+  "type": "BUY",
+  "user_id": "user identifier",
+  "symbol": "Asset symbol",
+  "price": "price to buy",
+  "amount": "amount to buy"
+}
+
+response
+{
+  "id": "request message identifier",
+  "status": "OK/ERROR",
+  "message": "descriptive message"
+}
+```
+
+#### Sell
+```yaml
+request
+{
+  "id": "message identifier",
+  "type": "SELL",
+  "user_id": "user identifier",
+  "symbol": "Asset symbol",
+  "price": "price to sell",
+  "amount": "amount to sell"
+}
+
+response
+{
+  "id": "request message identifier",
+  "status": "OK/ERROR",
+  "message": "descriptive message"
+}
+```
