@@ -8,9 +8,9 @@ Proof of Concept for a scalable simple trading Application, based on simplified 
 [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
 
 
-- Trade microservice: handles buy and sell transactions and publishes respective events
-- Payment microservice: manages the funds (deposits and withdrawals) for the users and published respective events
-- Reporting microservice: listens to the events from both Trade and Payment services and shows statistics. 
+- Trade service: handles buy and sell transactions and publishes respective events
+- Payment service: manages the funds (deposits and withdrawals) for the users and published respective events
+- Reporting service: listens to the events from both Trade and Payment services and shows statistics.
 
 ## Requirements:
 * docker >= 17.12.0+

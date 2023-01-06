@@ -1,7 +1,7 @@
 {
   "name": "reporting",
   "version": "1.0.0",
-  "description": "Simple reporting microservice",
+  "description": "Simple reporting service",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

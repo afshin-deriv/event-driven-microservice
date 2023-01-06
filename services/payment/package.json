@@ -1,7 +1,7 @@
 {
   "name": "payment",
   "version": "1.0.0",
-  "description": "Simple payment microservice",
+  "description": "Simple payment service",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

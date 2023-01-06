@@ -1,7 +1,7 @@
 {
   "name": "trade",
   "version": "1.0.0",
-  "description": "Simple trade microservice",
+  "description": "Simple trade service",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
