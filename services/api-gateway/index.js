@@ -17,12 +17,7 @@ wss.on("connection", ws => {
         await redis.addToStream(valid_data);
       })();
 
-      console.group("New Request:");
-        console.log(`user_id: ${req.user_id}`);
-        console.log(`type: ${req.type}`);
-	console.log(`amount: ${req.amount}`);
-	console.log(`symbol: ${req.symbol}`);
-      console.groupEnd();
+      console.table({user_id: req.user_id, type: req.type, amount: req.amount, symbol: req.symbol});
 
     } catch (e) {
       (async () => {
