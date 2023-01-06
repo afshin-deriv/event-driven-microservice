@@ -18,17 +18,24 @@ const credentials = {
 
 const postgres = {
 
-    checkSymbol: async function (symbol) {
+    check_symbol_availability: async function (symbol_name) {
         const pool = new Pool(credentials);
-        const symbol = await pool.query("SELECT * from symbols");
+        const symbol = await pool.query(`SELECT 1 AS result FROM symbol WHERE symbol_name=${symbol_name}`);
         await pool.end();
 
         return symbol;
     },
 
-    marketCalendar: async function (market, date) {
+    is_market_open: async function (symbol_name, date) {
         const pool = new Pool(credentials);
-        const market = await pool.query(`SELECT * from markets where market = ${market} and date = ${date}`);
+        const market = await pool.query(
+          `SELECT 1 AS result FROM market INNER JOIN symbol ON symbol.market_id = market.market_id
+           WHERE symbol_name = ${symbol_name} 
+           AND
+           ${date} >= open_from
+           AND
+           ${date} <= open_until`
+        );
         await pool.end();
 
         return market;
