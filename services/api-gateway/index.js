@@ -17,8 +17,13 @@ wss.on("connection", ws => {
         await redis.addToStream(valid_data);
       })();
 
-      // TODO: Will remove this log after development phase
-      console.log(`user_id: ${req.user_id}, type: ${req.type}, amount: ${req.amount}, symbol: ${req.symbol}`);
+      console.group("New Request:");
+        console.log(`user_id: ${req.user_id}`);
+        console.log(`type: ${req.type}`);
+	console.log(`amount: ${req.amount}`);
+	console.log(`symbol: ${req.symbol}`);
+      console.groupEnd();
+
     } catch (e) {
       (async () => {
         await ws.send("Request format isn't valid!", e);
