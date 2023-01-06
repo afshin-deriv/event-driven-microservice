@@ -17,7 +17,7 @@ wss.on("connection", ws => {
         await redis.addToStream(valid_data);
       })();
 
-      console.table({user_id: req.user_id, type: req.type, amount: req.amount, symbol: req.symbol});
+      console.table({user_id:req.user_id, type:req.type, amount:req.amount, symbol:req.symbol});
 
     } catch (e) {
       (async () => {
