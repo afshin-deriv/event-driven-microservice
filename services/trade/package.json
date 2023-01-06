@@ -7,7 +7,7 @@
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Afshin & Saman",
+  "author": "Afshin, Saman & Qinfeng",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.0.3",
