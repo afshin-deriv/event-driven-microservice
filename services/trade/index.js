@@ -9,29 +9,18 @@ const GROUP_NAME          = "trade-group";
 const CONSUMER_ID         = "consumer-".concat(uuidv4());
 
 
-
-redis.createStreamGroup(STREAMS_KEY_TRADE, GROUP_NAME, CONSUMER_ID);
-async function recieve_api_request () {
+async function receiveMessages(streamKey, groupName, consumerId, processMessage) {
+  redis.createStreamGroup(streamKey, groupName, consumerId);
   while (true) {
-    const [[, records]] = await redis.readStreamGroup(STREAMS_KEY_TRADE, GROUP_NAME, CONSUMER_ID);
+    const [[, records]] = await redis.readStreamGroup(streamKey, groupName, consumerId);
     for (const [id, [, request]] of records) {
-      await processTradeAck(id, request);
+      await processMessage(id, request);
     }
   }
 }
 
 
-redis.createStreamGroup(STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID);
-async function recieve_payment_response() {
-  while (true) {
-    const [[, records]] = await redis.readStreamGroup(STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID);
-    for (const [id, [, request]] of records) {
-      await processPaymentResponse(id, request);
-    }
-  }
-}
-
-async function send_response(message) {
+async function sendResponse(message) {
     console.log(`Send to api ${message}`);
     const channel = "api-response";
     await redis.addToStream(channel, 'trade-response', message, (err) => {
@@ -41,7 +30,7 @@ async function send_response(message) {
     });
 }
 
-async function processPaymentResponse (id, message) {
+async function processPaymentMessage (id, message) {
     console.log(`process payment response ${message}`);
     const response = JSON.parse(message);
     if (response.status == "OK") {
@@ -51,18 +40,18 @@ async function processPaymentResponse (id, message) {
                 if (req.type == "BUY") {
                     const resp = { "status" : "OK" ,
                                    "response" : `amount of ${req.count} of symbol ${req.symbol} at price ${req.price} has been bought`};
-                    send_response(JSON.stringify(resp));
+                    sendResponse(JSON.stringify(resp));
                 } else {
                     const resp = { "status" : "OK" ,
                                    "response" : `amount of ${req.count} of symbol ${req.symbol} at price ${req.price} has been soled`};
-                    send_response(JSON.stringify(resp));
+                    sendResponse(JSON.stringify(resp));
                 }
               }
         });
     }
 }
 
-async function ask_payment(message) {
+async function askPayment(message) {
     console.log(`Send message to payment ${message}`);
     const channel = "payment";
     await redis.addToStream(channel, 'payment', message, (err) => {
@@ -72,7 +61,7 @@ async function ask_payment(message) {
     });
 }
 
-async function processTradeAck (id, message) {
+async function processTradeMessage (id, message) {
   console.log(`process api message ${message}`);
 
   request = JSON.parse(message);
@@ -84,7 +73,7 @@ async function processTradeAck (id, message) {
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
                                     "type" : "WITHDRAW"};
-          await ask_payment(JSON.stringify(request_withdraw));
+          await askPayment(JSON.stringify(request_withdraw));
           break;
       }
       case "SELL": {
@@ -94,20 +83,20 @@ async function processTradeAck (id, message) {
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
                                     "type" : "DEPOSIT"};
-          await ask_payment(JSON.stringify(request_withdraw));
+          await askPayment(JSON.stringify(request_withdraw));
           break;
       }
       default: {
           const resp = { "status" : "ERROR" , "response" : "Undefined trade command" };
-          await send_response(JSON.stringify(resp));
+          await sendResponse(JSON.stringify(resp));
       }
   }
 }
 
 async function main() {
     const [firstCall, secondCall] = await Promise.all([
-            recieve_api_request(),
-            recieve_payment_response()
+            receiveMessages(STREAMS_KEY_TRADE, GROUP_NAME, CONSUMER_ID, processTradeMessage),
+            receiveMessages(STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID, processPaymentMessage)
 	]);
 }
 
