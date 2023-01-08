@@ -1,6 +1,6 @@
 -- trade database
 CREATE DATABASE trade;
-\c trade 
+\c trade
 CREATE TABLE market (
     market_id serial PRIMARY KEY,
     market_name TEXT NOT NULL,
@@ -20,28 +20,25 @@ CREATE TABLE symbol (
 -- trade payment
 CREATE DATABASE payment;
 \c payment
-CREATE TABLE user (
-    user_id serial PRIMARY KEY,
+CREATE TABLE client (
+    client_id serial PRIMARY KEY,
     fullname TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    PRIMARY KEY(user_id)
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE asset (
     asset_id serial PRIMARY KEY,
     asset_name TEXT NOT NULL,
-    user_id int NOT NULL,
-    amount INTEGER NOT NULL,
-    PRIMARY KEY(asset_id)
+    client_id int NOT NULL,
+    amount INTEGER NOT NULL
 );
 
 -- trade reporting
 CREATE DATABASE reporting;
 \c reporting
 CREATE TABLE transaction (
-    transaction_id serial PRIMARY KEY
+    transaction_id serial PRIMARY KEY,
     transaction_type TEXT,
     transaction_time TIMESTAMP,
-    transaction_result TEXT,
-    PRIMARY KEY(transaction_id)
+    transaction_result TEXT
 );
