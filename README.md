@@ -37,7 +37,7 @@ The Compose file contains the following environment variables:
 
 ```sh
 $ npm install -g wscat
-$ wscat -c 127.0.0.1:8080
+$ wscat -c 127.0.0.1:3000
 
 {"user_id":<USER-ID>, "type": "SELL | BUY", "amount": "<AMOUNT>", "symbol": "<SYMBOL-NAME>"}
 ```
