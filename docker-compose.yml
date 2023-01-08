@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       PGDATA: /data/postgres
     volumes:
-       - postgres:/data/postgres
+    - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - postgres_net
     restart: unless-stopped
