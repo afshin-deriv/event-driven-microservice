@@ -34,7 +34,7 @@ async function processPaymentMessage (id, message) {
     console.log(`process payment response ${message}`);
     const response = JSON.parse(message);
     if (response.status == "OK") {
-        await redis.get(response.id, (err, result) => {
+        redis.get(response.id, (err, result) => {
               if (result) {
                 const req = JSON.parse(result);
                 if (req.type == "BUY") {
@@ -68,7 +68,7 @@ async function processTradeMessage (id, message) {
   switch(request.type) {
       case "BUY": {
           // TODO: check the price and amount from market
-          await redis.set(request.id, message);
+          redis.set(request.id, message);
           const request_withdraw = {"id" : request.id,
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
@@ -78,12 +78,12 @@ async function processTradeMessage (id, message) {
       }
       case "SELL": {
           // TODO: check the price and amount from market
-          await redis.set(request.id, message);
-          const request_withdraw = {"id" : request.id,
+          redis.set(request.id, message);
+          const request_deposit = {"id" : request.id,
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
                                     "type" : "DEPOSIT"};
-          await askPayment(JSON.stringify(request_withdraw));
+          await askPayment(JSON.stringify(request_deposit));
           break;
       }
       default: {
