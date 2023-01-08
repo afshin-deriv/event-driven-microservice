@@ -56,10 +56,15 @@ async function processPaymentMessage (id, message) {
     }
 }
 
- async function askPayment(message) {
-    console.log(`Send message to payment ${message}`);
+// TODO: Refactoring this function! (The first attempt failed)
+async function askPayment(message) {
     const channel = "payment";
-    await addToStream(channel, 'payment', message, (err) => {
+    const Redis = require('ioredis');
+    const redis = new Redis({
+        host: 'redis',
+        port: '6379',
+    });
+    await redis.xadd(channel, '*', 'payment', message, (err) => {
         if (err) {
             return console.error(err);
         }

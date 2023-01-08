@@ -28,6 +28,7 @@ services:
       dockerfile: Dockerfile
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     links:
       - redis:redis
     restart: always
@@ -42,6 +43,7 @@ services:
       dockerfile: Dockerfile
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     links:
       - redis:redis
     restart: always
@@ -56,6 +58,7 @@ services:
       dockerfile: Dockerfile
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     links:
       - redis:redis
     restart: always
@@ -70,6 +73,7 @@ services:
       dockerfile: Dockerfile
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
     ports:
       - "3000:3000"
     links:
