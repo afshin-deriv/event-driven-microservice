@@ -9,28 +9,35 @@ const redis_obj = new Redis({
     port: REDIS_PORT,
 });
 
-const redis = {
+ async function createStreamGroup (stream_key, group_name, consumer_id) {
+    return await redis_obj.xgroup('CREATE', stream_key,
+                   group_name, '$', 'MKSTREAM')
+                  .catch(() => console.log(`Consumer ${consumer_id} group already exists`));
+}
 
-    createStreamGroup: async function (stream_key, group_name, consumer_id) {
-        return await redis_obj.xgroup('CREATE', stream_key,
-                       group_name, '$', 'MKSTREAM')
-                      .catch(() => console.log(`Consumer ${consumer_id} group already exists`));
-    },
-    readStreamGroup: async function (stream_key, group_name, consumer_id) {
-        return await redis_obj.xreadgroup(
-            'GROUP', group_name, consumer_id, 'BLOCK', '0',
-            'COUNT', '1', 'STREAMS', stream_key, '>');
-    },
-    addToStream: async function (channel, msg_key, message, error_handler) {
-        await redis_obj.xadd(channel, '*', msg_key, message, error_handler);
-    },
-    set: async function (request_id, message) {
-        await redis_obj.set(request_id, message);
-    },
-    get: async function (response_id, response_handler) {
-        await redis_obj.get(response_id, response_handler);
-    }
+async function readStreamGroup (stream_key, group_name, consumer_id) {
+    return await redis_obj.xreadgroup(
+        'GROUP', group_name, consumer_id, 'BLOCK', '0',
+        'COUNT', '1', 'STREAMS', stream_key, '>');
+}
 
+async function addToStream (channel, msg_key, message, error_handler) {
+    await redis_obj.xadd(channel, '*', msg_key, message, error_handler);
+}
+
+function set (request_id, message) {
+    redis_obj.set(request_id, message);
+}
+
+function get (response_id, response_handler) {
+    redis_obj.get(response_id, response_handler);
+}
+
+module.exports = {
+    redis_obj,
+    createStreamGroup,
+    readStreamGroup,
+    addToStream,
+    set,
+    get
 };
-
-module.exports = redis;

@@ -1,5 +1,10 @@
 const postgresql = require('./postgresql.js');
-const redis = require('./redis.js');
+const {redis_obj,
+    createStreamGroup,
+    readStreamGroup,
+    addToStream,
+    set,
+    get} = require('./redis.js');
 const {v4: uuidv4} = require('uuid');
 
 
@@ -10,9 +15,9 @@ const CONSUMER_ID         = "consumer-".concat(uuidv4());
 
 
 async function receiveMessages(streamKey, groupName, consumerId, processMessage) {
-  redis.createStreamGroup(streamKey, groupName, consumerId);
+  createStreamGroup(streamKey, groupName, consumerId);
   while (true) {
-    const [[, records]] = await redis.readStreamGroup(streamKey, groupName, consumerId);
+    const [[, records]] = await readStreamGroup(streamKey, groupName, consumerId);
     for (const [id, [, request]] of records) {
       await processMessage(id, request);
     }
@@ -23,7 +28,7 @@ async function receiveMessages(streamKey, groupName, consumerId, processMessage)
 async function sendResponse(message) {
     console.log(`Send to api ${message}`);
     const channel = "api-response";
-    await redis.addToStream(channel, 'trade-response', message, (err) => {
+    await addToStream(channel, 'trade-response', message, (err) => {
         if (err) {
             return console.error(err);
         }
@@ -34,7 +39,7 @@ async function processPaymentMessage (id, message) {
     console.log(`process payment response ${message}`);
     const response = JSON.parse(message);
     if (response.status == "OK") {
-        redis.get(response.id, (err, result) => {
+        get(response.id, (err, result) => {
               if (result) {
                 const req = JSON.parse(result);
                 if (req.type == "BUY") {
@@ -51,10 +56,10 @@ async function processPaymentMessage (id, message) {
     }
 }
 
-async function askPayment(message) {
+ async function askPayment(message) {
     console.log(`Send message to payment ${message}`);
     const channel = "payment";
-    await redis.addToStream(channel, 'payment', message, (err) => {
+    await addToStream(channel, 'payment', message, (err) => {
         if (err) {
             return console.error(err);
         }
@@ -68,7 +73,7 @@ async function processTradeMessage (id, message) {
   switch(request.type) {
       case "BUY": {
           // TODO: check the price and amount from market
-          redis.set(request.id, message);
+          set(request.id, message);
           const request_withdraw = {"id" : request.id,
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
@@ -78,7 +83,7 @@ async function processTradeMessage (id, message) {
       }
       case "SELL": {
           // TODO: check the price and amount from market
-          redis.set(request.id, message);
+          set(request.id, message);
           const request_deposit = {"id" : request.id,
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
