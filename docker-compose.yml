@@ -3,8 +3,6 @@ version: "3.9"
 services:
   redis:
     image: redis
-    networks:
-      - redis_net
     restart: always
 
   postgres:
@@ -16,8 +14,6 @@ services:
       PGDATA: /data/postgres
     volumes:
     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - postgres_net
     restart: unless-stopped
 
   trade:
@@ -25,45 +21,31 @@ services:
       - redis
     build:
       context: ./services/trade
-      dockerfile: Dockerfile
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
-    links:
-      - redis:redis
     restart: always
-    networks:
-      - redis_net
 
   payment:
     depends_on:
       - redis
     build:
       context: ./services/payment
-      dockerfile: Dockerfile
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
-    links:
-      - redis:redis
     restart: always
-    networks:
-      - redis_net
+
 
   reporting:
     depends_on:
       - redis
     build:
       context: ./services/reporting
-      dockerfile: Dockerfile
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
-    links:
-      - redis:redis
     restart: always
-    networks:
-      - redis_net
 
   api-gateway:
     depends_on:
@@ -76,16 +58,9 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
     ports:
       - "3000:3000"
-    links:
-      - redis:redis
     restart: always
-    networks:
-      - redis_net
 
-networks:
-  redis_net:
-    driver: bridge
-  postgres_net:
-    driver: bridge
+
+
 volumes:
     postgres:
