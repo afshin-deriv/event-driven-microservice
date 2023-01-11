@@ -33,7 +33,7 @@ async function delUser (client_id) {
     return result;
 }
 
-async function infoUder (client_id) {
+async function infoUser (client_id) {
     const result = await pool.query(`SELECT client_id, fullname, created_at from client WHERE client_id = ${client_id}`);
     await pool.end();
 
@@ -43,5 +43,6 @@ async function infoUder (client_id) {
 
 module.exports = {
     addUser,
-    delUser
+    delUser,
+    infoUser
 };
