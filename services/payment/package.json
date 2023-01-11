@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "ioredis": "^5.2.4",
+    "pg": "^8.8.0",
     "uuid": "^9.0.0"
   }
 }
