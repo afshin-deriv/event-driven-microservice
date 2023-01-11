@@ -60,7 +60,6 @@ async function askPayment(message) {
 }
 
 module.exports = {
-    redis_obj,
     createStreamGroup,
     readStreamGroup,
     addToStream,

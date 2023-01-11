@@ -1,5 +1,5 @@
 const postgresql = require('./postgresql.js');
-const {redis_obj,
+const {
     createStreamGroup,
     readStreamGroup,
     addToStream,
@@ -15,7 +15,7 @@ const GROUP_NAME          = "trade-group";
 const CONSUMER_ID         = "consumer-".concat(uuidv4());
 
 async function receiveMessages(id, streamKey, groupName, consumerId, processMessage) {
-  createStreamGroup(id, streamKey, groupName, consumerId);
+  await createStreamGroup(id, streamKey, groupName, consumerId);
   while (true) {
     const [[, records]] = await readStreamGroup(id, streamKey, groupName, consumerId);
     for (const [id, [, request]] of records) {
@@ -64,22 +64,25 @@ async function processTradeMessage (id, message) {
           // TODO: check the price and amount from market
           await set(request.id, message);
           const request_withdraw = {"id" : request.id,
-                                    "user_id" :    request.user_id,
-                                    "amount" : request.count * request.price,
-                                    "type" : "WITHDRAW"};
+              "user_id" :    request.user_id,
+              "amount" : request.count * request.price,
+              "type" : "WITHDRAW"};
           await askPayment(JSON.stringify(request_withdraw));
           break;
       }
+
       case "SELL": {
           // TODO: check the price and amount from market
           await set(request.id, message);
-          const request_deposit = {"id" : request.id,
-                                    "user_id" :    request.user_id,
-                                    "amount" : request.count * request.price,
-                                    "type" : "DEPOSIT"};
+          const request_deposit = {
+              "id" : request.id,
+              "user_id" :    request.user_id,
+              "amount" : request.count * request.price,
+              "type" : "DEPOSIT"};
           await askPayment(JSON.stringify(request_deposit));
           break;
       }
+
       default: {
           const resp = { "status" : "ERROR" , "response" : "Undefined trade command" };
           await sendResponse(JSON.stringify(resp));
