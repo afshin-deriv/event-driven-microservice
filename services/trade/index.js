@@ -4,6 +4,7 @@ const {redis_obj,
     readStreamGroup,
     addToStream,
     set,
+    askPayment,
     get} = require('./redis.js');
 const {v4: uuidv4} = require('uuid');
 
@@ -14,10 +15,10 @@ const GROUP_NAME          = "trade-group";
 const CONSUMER_ID         = "consumer-".concat(uuidv4());
 
 
-async function receiveMessages(streamKey, groupName, consumerId, processMessage) {
-  createStreamGroup(streamKey, groupName, consumerId);
+async function receiveMessages(id, streamKey, groupName, consumerId, processMessage) {
+  createStreamGroup(id, streamKey, groupName, consumerId);
   while (true) {
-    const [[, records]] = await readStreamGroup(streamKey, groupName, consumerId);
+    const [[, records]] = await readStreamGroup(id, streamKey, groupName, consumerId);
     for (const [id, [, request]] of records) {
       await processMessage(id, request);
     }
@@ -56,21 +57,6 @@ async function processPaymentMessage (id, message) {
     }
 }
 
-// TODO: Refactoring this function! (The first attempt failed)
-async function askPayment(message) {
-    const channel = "payment";
-    const Redis = require('ioredis');
-    const redis = new Redis({
-        host: 'redis',
-        port: '6379',
-    });
-    await redis.xadd(channel, '*', 'payment', message, (err) => {
-        if (err) {
-            return console.error(err);
-        }
-    });
-}
-
 async function processTradeMessage (id, message) {
   console.log(`process api message ${message}`);
 
@@ -105,8 +91,8 @@ async function processTradeMessage (id, message) {
 
 async function main() {
     const [firstCall, secondCall] = await Promise.all([
-            receiveMessages(STREAMS_KEY_TRADE, GROUP_NAME, CONSUMER_ID, processTradeMessage),
-            receiveMessages(STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID, processPaymentMessage)
+            receiveMessages(1, STREAMS_KEY_TRADE, GROUP_NAME, CONSUMER_ID, processTradeMessage),
+            receiveMessages(2, STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID, processPaymentMessage)
 	]);
 }
 

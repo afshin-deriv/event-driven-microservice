@@ -9,28 +9,54 @@ const redis_obj = new Redis({
     port: REDIS_PORT,
 });
 
- async function createStreamGroup (stream_key, group_name, consumer_id) {
+const client = new Redis({
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+});
+
+async function createStreamGroup (id, stream_key, group_name, consumer_id) {
+    if (id == 1) {
     return await redis_obj.xgroup('CREATE', stream_key,
                    group_name, '$', 'MKSTREAM')
                   .catch(() => console.log(`Consumer ${consumer_id} group already exists`));
+    } else {
+    return await client.xgroup('CREATE', stream_key,
+                   group_name, '$', 'MKSTREAM')
+                  .catch(() => console.log(`Consumer ${consumer_id} group already exists`));
+    }
 }
 
-async function readStreamGroup (stream_key, group_name, consumer_id) {
+async function readStreamGroup (id, stream_key, group_name, consumer_id) {
+    if (id == 1) {
     return await redis_obj.xreadgroup(
         'GROUP', group_name, consumer_id, 'BLOCK', '0',
         'COUNT', '1', 'STREAMS', stream_key, '>');
+    } else {
+    return await client.xreadgroup(
+        'GROUP', group_name, consumer_id, 'BLOCK', '0',
+        'COUNT', '1', 'STREAMS', stream_key, '>');
+    }
 }
 
 async function addToStream (channel, msg_key, message, error_handler) {
-    await redis_obj.xadd(channel, '*', msg_key, message, error_handler);
+    await client.xadd(channel, '*', msg_key, message, error_handler);
 }
 
-function set (request_id, message) {
-    redis_obj.set(request_id, message);
+async function set (request_id, message) {
+    await redis_obj.set(request_id, message);
 }
 
-function get (response_id, response_handler) {
-    redis_obj.get(response_id, response_handler);
+async function get (response_id, response_handler) {
+    await redis_obj.get(response_id, response_handler);
+}
+
+async function askPayment(message) {
+    const channel = "payment";
+    await redis_obj.xadd(channel, '*', 'payment', message, (err) => {
+        if (err) {
+            return console.error(err);
+        }
+    });
 }
 
 module.exports = {
@@ -39,5 +65,6 @@ module.exports = {
     readStreamGroup,
     addToStream,
     set,
-    get
+    get,
+    askPayment
 };
