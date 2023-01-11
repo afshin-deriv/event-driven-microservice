@@ -34,7 +34,6 @@ async function sendMessage(message, channel, key) {
 }
 
 module.exports = {
-    redis_sub,
     createStreamGroup,
     readStreamGroup,
     sendMessage
