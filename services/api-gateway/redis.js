@@ -5,35 +5,24 @@ const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = process.env.REDIS_PORT || '6379';
 const STREAMS_KEY = "api";
 
-const client = new Redis({
+const redis_write = new Redis({
     host: REDIS_HOST,
     port: REDIS_PORT,
 });
 
+const redis_read = new Redis({
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+});
 
-const redis = {
-
-    addToStream: function (data) { 
-        client.xadd(STREAMS_KEY, '*', 'request', data, function (err) {
-            if (err) {
-              return console.error(err);
-            }
-          });
-    },
-
-    validateAndParse: function (data) {
-        if ( !data.user_id && !data.type && !data.amount && !data.symbol) {
-            throw 'Invalid Request format';
+function addToStream (data) {
+    redis_write.xadd(STREAMS_KEY, '*', 'request', data, function (err) {
+        if (err) {
+            return console.error(err);
         }
-        const jsonData = JSON.stringify({
-            "user_id": data.user_id,
-            "amount":  data.amount,
-            "symbol":  data.symbol,
-            "type":    data.type
-        });
+    });
+}
 
-	    return jsonData;
-    }
+module.exports = {
+    addToStream
 };
-
-module.exports = redis;

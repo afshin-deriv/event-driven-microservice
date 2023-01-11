@@ -1,5 +1,6 @@
 const WebSocketServer = require('ws');
-const redis = require('./redis.js');
+const {addToStream} = require('./redis.js');
+const {validateAndParse} = require("./validation");
 
 
 const port = 3000;
@@ -12,9 +13,9 @@ wss.on("connection", ws => {
   ws.on("message", data => {
     try {
       const req = JSON.parse(data);
-      valid_data = redis.validateAndParse(req);
+      const valid_data = validateAndParse(req);
       (async () => {
-        await redis.addToStream(valid_data);
+        await addToStream(valid_data);
       })();
 
       console.table({user_id:req.user_id, type:req.type, amount:req.amount, symbol:req.symbol});

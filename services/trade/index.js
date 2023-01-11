@@ -58,11 +58,11 @@ async function processPaymentMessage (id, message) {
 async function processTradeMessage (id, message) {
   console.log(`process api message ${message}`);
 
-  request = JSON.parse(message);
+    let request = JSON.parse(message);
   switch(request.type) {
       case "BUY": {
           // TODO: check the price and amount from market
-          set(request.id, message);
+          await set(request.id, message);
           const request_withdraw = {"id" : request.id,
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
@@ -72,7 +72,7 @@ async function processTradeMessage (id, message) {
       }
       case "SELL": {
           // TODO: check the price and amount from market
-          set(request.id, message);
+          await set(request.id, message);
           const request_deposit = {"id" : request.id,
                                     "user_id" :    request.user_id,
                                     "amount" : request.count * request.price,
