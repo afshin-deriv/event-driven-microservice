@@ -14,7 +14,7 @@ const client = new Redis({
     port: REDIS_PORT,
 });
 
-async function createStreamGroup (id, stream_key, group_name, consumer_id) {
+async function createStreamGroup(id, stream_key, group_name, consumer_id) {
     if (id == 1) {
     return await redis_obj.xgroup('CREATE', stream_key,
                    group_name, '$', 'MKSTREAM')
@@ -26,7 +26,7 @@ async function createStreamGroup (id, stream_key, group_name, consumer_id) {
     }
 }
 
-async function readStreamGroup (id, stream_key, group_name, consumer_id) {
+async function readStreamGroup(id, stream_key, group_name, consumer_id) {
     if (id == 1) {
     return await redis_obj.xreadgroup(
         'GROUP', group_name, consumer_id, 'BLOCK', '0',
@@ -38,15 +38,15 @@ async function readStreamGroup (id, stream_key, group_name, consumer_id) {
     }
 }
 
-async function addToStream (channel, msg_key, message, error_handler) {
+async function addToStream(channel, msg_key, message, error_handler) {
     await client.xadd(channel, '*', msg_key, message, error_handler);
 }
 
-async function set (request_id, message) {
+async function set(request_id, message) {
     await redis_obj.set(request_id, message);
 }
 
-async function get (response_id, response_handler) {
+async function get(response_id, response_handler) {
     await redis_obj.get(response_id, response_handler);
 }
 

@@ -14,7 +14,6 @@ const STREAMS_KEY_PAYMENT = "payment_response";
 const GROUP_NAME          = "trade-group";
 const CONSUMER_ID         = "consumer-".concat(uuidv4());
 
-
 async function receiveMessages(id, streamKey, groupName, consumerId, processMessage) {
   createStreamGroup(id, streamKey, groupName, consumerId);
   while (true) {
@@ -24,7 +23,6 @@ async function receiveMessages(id, streamKey, groupName, consumerId, processMess
     }
   }
 }
-
 
 async function sendResponse(message) {
     console.log(`Send to api ${message}`);

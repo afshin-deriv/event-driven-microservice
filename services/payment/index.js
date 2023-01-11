@@ -1,53 +1,29 @@
-const Redis = require('ioredis');
-const { v4: uuidv4 } = require('uuid');
-
-const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-const REDIS_PORT = process.env.REDIS_PORT || '6379';
-require('dotenv').config();
-
-const redis_sub = new Redis({
-    host: REDIS_HOST,
-    port: REDIS_PORT
-});
-
-const redis_pub = new Redis({
-    host: REDIS_HOST,
-    port: REDIS_PORT
-});
+const { redis_sub,createStreamGroup,
+    readStreamGroup,
+    sendMessage} = require('./redis.js');
+const {v4: uuidv4} = require('uuid');
 
 const STREAMS_KEY = "payment";
 const GROUP_NAME = "payment-group";
 const CONSUMER_ID = "consumer-".concat(uuidv4());
 
+const RESP_STREAMS_KEY = "payment_response";
+const RESP_CHANNEL = "payment_response";
+
 // TODO: Use postgress
 const users = new Map();
 
-async function send_response(message) {
-    console.log(`Send ${message}`);
-    const response_channel = "payment_response";
-    await redis_pub.xadd(response_channel, '*', 'payment_response', message, function (err) {
-        if (err) {
-            return console.error(err);
-        }
-    });
-}
-
-async function recieve_request() {
-    await redis_sub.xgroup('CREATE', STREAMS_KEY, GROUP_NAME, '$', 'MKSTREAM')
-        .catch(() => console.log(`Consumer ${CONSUMER_ID} group already exists`));
-
+async function receiveMessages(streamKey, groupName, consumerId, processMessage) {
+    createStreamGroup(streamKey, groupName, consumerId);
     while (true) {
-        const [[, records]] = await redis_sub.xreadgroup(
-            'GROUP', GROUP_NAME, CONSUMER_ID, 'BLOCK', '0',
-            'COUNT', '1', 'STREAMS', STREAMS_KEY, '>');
+        const [[, records]] = await readStreamGroup(streamKey, groupName, consumerId);
         for (const [id, [, request]] of records) {
-            await process_request(request);
+            await processMessage(request);
         }
     }
 }
 
 async function process_request(message) {
-      console.log(`Received ${message}`);
       request = JSON.parse(message);
       switch(request.type) {
         case "DEPOSIT": {
@@ -56,12 +32,12 @@ async function process_request(message) {
                 const response = { "status" : "OK", 
                                   "response" : `Deposit to account ${request.user_id} with amount of ${request.amount} has been done`,
                                   "id" : request.id};
-                await send_response(JSON.stringify(response));
+                await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                await send_response(JSON.stringify(response));
+                await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             }
             break;
         }
@@ -72,18 +48,18 @@ async function process_request(message) {
                     const response = { "status" : "OK", 
                                        "response" : `Withdraw from account ${request.user_id} with amount of ${request.amount} has been done`,
                                        "id" : request.id};
-                    await send_response(JSON.stringify(response));
+                    await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
                 } else {
                     const response = { "status" : "ERROR", 
                                       "response" : `User ${request.user_id} has not sufficent amount`,
                                       "id" : request.id};
-                    await send_response(JSON.stringify(response));
+                    await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
                 }
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                await send_response(JSON.stringify(response));
+                await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             }
             break;
         }
@@ -93,7 +69,7 @@ async function process_request(message) {
             const response = { "status" : "OK", 
                               "response" : `User with id ${id} has been created`,
                               "id" : request.id};
-            await send_response(JSON.stringify(response));
+            await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             break;
         }
         case "REMOVE_USER":{
@@ -102,12 +78,12 @@ async function process_request(message) {
                 const response = { "status" : "OK", 
                                   "response" : `User ${request.user_id} with amount of ${request.amount} has been deleted`,
                                   "id" : request.id};
-                await send_response(JSON.stringify(response));
+                await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                await send_response(JSON.stringify(response));
+                await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             }
             break;
         }
@@ -118,12 +94,12 @@ async function process_request(message) {
                                   "id" : request.id,
                                   "user_id" : request.user_id,
                                   "amount" : users.get(request.user_id)};
-                await send_response(JSON.stringify(response));
+                await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             } else {
                 const response = { "status" : "ERROR", 
                                   "response" : `User ${request.user_id} not found`,
                                   "id" : request.id};
-                await send_response(JSON.stringify(response));
+                await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
             }
             break;
         }
@@ -131,9 +107,9 @@ async function process_request(message) {
             const response = { "status" : "ERROR", 
                               "response" : `Undefined Type ${request.type}`,
                               "id" : request.id};
-            await send_response(JSON.stringify(response));
+            await sendMessage(JSON.stringify(response), RESP_CHANNEL, RESP_STREAMS_KEY);
         }
       }
 }
 
-recieve_request().catch(err => console.error(err));
+receiveMessages(STREAMS_KEY, GROUP_NAME, CONSUMER_ID, process_request).catch(err => console.error(err));
