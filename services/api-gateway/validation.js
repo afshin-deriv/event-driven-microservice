@@ -8,7 +8,6 @@ function validateAndParse (data) {
 
     switch(data.type) {
         case "ADD_USER": {
-            if (!data.user_id) throw 'Invalid Request format';
             const jsonData = JSON.stringify({
                 "user_id": USER_ID,
                 "type": data.type,
