@@ -1,7 +1,7 @@
 const {v4: uuidv4} = require('uuid');
 
 function validateAndParse (data) {
-    if (! data.type) {
+    if (!data.type) {
         throw 'Invalid Request format';
     }
 

@@ -1,6 +1,5 @@
 async function createStreamGroup(redis, stream_key, group_name, consumer_id) {
-    return await redis.xgroup('CREATE', stream_key,
-        group_name, '$', 'MKSTREAM')
+    return await redis.xgroup('CREATE', stream_key, group_name, '$', 'MKSTREAM')
         .catch(() => console.log(`Consumer ${consumer_id} group already exists`));
 }
 
