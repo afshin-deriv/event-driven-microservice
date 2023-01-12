@@ -23,7 +23,7 @@ async function get(redis, response_id, response_handler) {
 }
 
 async function askPayment(redis, channel, key, message) {
-    await redis.xadd(channel, '*', channel, message, (err) => {
+    await redis.xadd(channel, '*', key, message, (err) => {
         if (err) {
             return console.error(err);
         }

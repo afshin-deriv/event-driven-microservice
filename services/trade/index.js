@@ -29,7 +29,7 @@ const {
 const STREAMS_KEY_TRADE   = "api";
 const STREAMS_KEY_PAYMENT = "payment_response";
 const GROUP_NAME          = "trade-group";
-const CONSUMER_ID         = "consumer-".concat(uuidv4());
+const CONSUMER_ID         = "trade-consumer-".concat(uuidv4());
 
 async function receiveMessages(redis, streamKey, groupName, consumerId, processMessage) {
   await createStreamGroup(redis, streamKey, groupName, consumerId);
@@ -73,12 +73,11 @@ async function processPaymentMessage (id, message) {
 }
 
 async function processTradeMessage (id, message) {
-  console.log(`process api message ${message}`);
-
-    let request = JSON.parse(message);
+  const request = JSON.parse(message);
   switch(request.type) {
       case "BUY": {
           // TODO: check the price and amount from market
+          console.log(`process BUY request ${message}`);
           await set(redis_trade, request.id, message);
           const request_withdraw = {"id" : request.id,
               "user_id" :    request.user_id,
@@ -90,6 +89,7 @@ async function processTradeMessage (id, message) {
 
       case "SELL": {
           // TODO: check the price and amount from market
+          console.log(`process SELL request ${message}`);
           await set(redis_trade, request.id, message);
           const request_deposit = {
               "id" : request.id,
@@ -99,11 +99,12 @@ async function processTradeMessage (id, message) {
           await askPayment(redis_trade, "payment", "payment", JSON.stringify(request_deposit));
           break;
       }
+      /* If received message isn't for trade service, simply ignore it! */
 
-      default: {
-          const resp = { "status" : "ERROR" , "response" : "Undefined trade command" };
-          await sendResponse(JSON.stringify(resp));
-      }
+      // default: {
+      //     const resp = { "status" : "ERROR" , "response" : "Undefined trade command" };
+      //     await sendResponse(JSON.stringify(resp));
+      // }
   }
 }
 

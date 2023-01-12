@@ -1,6 +1,5 @@
 const {v4: uuidv4} = require('uuid');
 
-const USER_ID = uuidv4();
 function validateAndParse (data) {
     if (! data.type) {
         throw 'Invalid Request format';
@@ -9,7 +8,6 @@ function validateAndParse (data) {
     switch(data.type) {
         case "ADD_USER": {
             const jsonData = JSON.stringify({
-                "user_id": USER_ID,
                 "type": data.type,
             });
             return jsonData;

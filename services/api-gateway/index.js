@@ -18,7 +18,7 @@ wss.on("connection", ws => {
         await addToStream(valid_data);
       })();
 
-      console.table({user_id:req.user_id, type:req.type, amount:req.amount, symbol:req.symbol});
+      console.table({req_type:req.type});
 
     } catch (e) {
       (async () => {
