@@ -11,8 +11,6 @@ async function createStreamGroup(redis, stream_key, group_name, consumer_id) {
         .catch(() => console.log(`Consumer ${consumer_id} group already exists`));
 }
 
-
-
 module.exports = {
     addToStream,
     createStreamGroup,

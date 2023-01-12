@@ -1,6 +1,7 @@
 const WebSocketServer = require('ws');
-const {addToStream, createStreamGroup} = require('./redis.js');
 const {validateAndParse} = require("./validation");
+const {addToStream,
+       createStreamGroup} = require('./redis.js');
 
 const {v4: uuidv4} = require('uuid');
 const Redis = require('ioredis');
@@ -44,12 +45,12 @@ wss.on("connection", ws => {
       const valid_data = validateAndParse(req);
       (async () => {
         if (req.type == "BUY" || req.type == "SELL") {
-          console.log("trade...");
           await addToStream(redis_out, TRADE_STREAMS_KEY, valid_data);
         } else {
           await addToStream(redis_out, PAYMENT_STREAMS_KEY, valid_data);
-          console.log("payment...");
         }
+        await receiveMessages(redis_payment, PAYMENT_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, processRequest, ws);
+        await receiveMessages(redis_trade, TRADE_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, processRequest, ws)
 
       })();
 
@@ -81,27 +82,17 @@ async function readStreamGroup(redis, stream_key, group_name, consumer_id) {
       'COUNT', '1', 'STREAMS', stream_key, '>');
 }
 
-async function processRequest(message) {
-  console.log(message);
+async function processRequest(message, ws) {
+  // console.log(message);
+  await ws.send(message);
 }
 
-async function receiveMessages(redis, streamKey, groupName, consumerId, processMessage) {
+async function receiveMessages(redis, streamKey, groupName, consumerId, processMessage, websocket) {
   await createStreamGroup(redis, streamKey, groupName, consumerId);
   while (true) {
     const [[, records]] = await readStreamGroup(redis, streamKey, groupName, consumerId);
     for (const [id, [, request]] of records) {
-      await processMessage(request);
+      await processMessage(request, websocket);
     }
   }
 }
-
-
-
-async function main() {
-  const [firstCall, secondCall] = await Promise.all([
-    receiveMessages(redis_trade, TRADE_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, processRequest),
-    receiveMessages(redis_payment, PAYMENT_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, processRequest)
-  ]);
-}
-
-main().catch(err => console.error(err));
