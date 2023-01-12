@@ -49,8 +49,8 @@ wss.on("connection", ws => {
         } else {
           await addToStream(redis_out, PAYMENT_STREAMS_KEY, valid_data);
         }
-        await receiveMessages(redis_payment, PAYMENT_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, processRequest, ws);
-        await receiveMessages(redis_trade, TRADE_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, processRequest, ws)
+        await receiveMessages(redis_payment, PAYMENT_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, showResponse, ws);
+        await receiveMessages(redis_trade, TRADE_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, showResponse, ws);
 
       })();
 
@@ -82,7 +82,7 @@ async function readStreamGroup(redis, stream_key, group_name, consumer_id) {
       'COUNT', '1', 'STREAMS', stream_key, '>');
 }
 
-async function processRequest(message, ws) {
+async function showResponse(message, ws) {
   // console.log(message);
   await ws.send(message);
 }
