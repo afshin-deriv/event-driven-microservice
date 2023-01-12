@@ -1,4 +1,21 @@
 const postgresql = require('./postgresql.js');
+const Redis = require('ioredis');
+const {v4: uuidv4} = require('uuid');
+require('dotenv').config();
+
+const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
+const REDIS_PORT = process.env.REDIS_PORT || '6379';
+
+const redis_trade = new Redis({
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+});
+
+const redis_payment = new Redis({
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+});
+
 const {
     createStreamGroup,
     readStreamGroup,
@@ -6,7 +23,7 @@ const {
     set,
     askPayment,
     get} = require('./redis.js');
-const {v4: uuidv4} = require('uuid');
+
 
 
 const STREAMS_KEY_TRADE   = "api";
@@ -14,10 +31,10 @@ const STREAMS_KEY_PAYMENT = "payment_response";
 const GROUP_NAME          = "trade-group";
 const CONSUMER_ID         = "consumer-".concat(uuidv4());
 
-async function receiveMessages(id, streamKey, groupName, consumerId, processMessage) {
-  await createStreamGroup(id, streamKey, groupName, consumerId);
+async function receiveMessages(redis, streamKey, groupName, consumerId, processMessage) {
+  await createStreamGroup(redis, streamKey, groupName, consumerId);
   while (true) {
-    const [[, records]] = await readStreamGroup(id, streamKey, groupName, consumerId);
+    const [[, records]] = await readStreamGroup(redis, streamKey, groupName, consumerId);
     for (const [id, [, request]] of records) {
       await processMessage(id, request);
     }
@@ -27,7 +44,7 @@ async function receiveMessages(id, streamKey, groupName, consumerId, processMess
 async function sendResponse(message) {
     console.log(`Send to api ${message}`);
     const channel = "api-response";
-    await addToStream(channel, 'trade-response', message, (err) => {
+    await addToStream(redis_payment, channel, 'trade-response', message, (err) => {
         if (err) {
             return console.error(err);
         }
@@ -38,7 +55,7 @@ async function processPaymentMessage (id, message) {
     console.log(`process payment response ${message}`);
     const response = JSON.parse(message);
     if (response.status == "OK") {
-        get(response.id, (err, result) => {
+        get(redis_trade, response.id, (err, result) => {
               if (result) {
                 const req = JSON.parse(result);
                 if (req.type == "BUY") {
@@ -62,24 +79,24 @@ async function processTradeMessage (id, message) {
   switch(request.type) {
       case "BUY": {
           // TODO: check the price and amount from market
-          await set(request.id, message);
+          await set(redis_trade, request.id, message);
           const request_withdraw = {"id" : request.id,
               "user_id" :    request.user_id,
               "amount" : request.count * request.price,
               "type" : "WITHDRAW"};
-          await askPayment(JSON.stringify(request_withdraw));
+          await askPayment(redis_trade, "payment", "payment", JSON.stringify(request_withdraw));
           break;
       }
 
       case "SELL": {
           // TODO: check the price and amount from market
-          await set(request.id, message);
+          await set(redis_trade, request.id, message);
           const request_deposit = {
               "id" : request.id,
               "user_id" :    request.user_id,
               "amount" : request.count * request.price,
               "type" : "DEPOSIT"};
-          await askPayment(JSON.stringify(request_deposit));
+          await askPayment(redis_trade, "payment", "payment", JSON.stringify(request_deposit));
           break;
       }
 
@@ -92,8 +109,8 @@ async function processTradeMessage (id, message) {
 
 async function main() {
     const [firstCall, secondCall] = await Promise.all([
-            receiveMessages(1, STREAMS_KEY_TRADE, GROUP_NAME, CONSUMER_ID, processTradeMessage),
-            receiveMessages(2, STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID, processPaymentMessage)
+            receiveMessages(redis_trade, STREAMS_KEY_TRADE, GROUP_NAME, CONSUMER_ID, processTradeMessage),
+            receiveMessages(redis_payment, STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID, processPaymentMessage)
 	]);
 }
 
