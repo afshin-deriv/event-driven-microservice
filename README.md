@@ -1,3 +1,7 @@
+<img src="documents/images/Event_Driven.png" width="639" height="510">
+      
+*Comic by* [*Forrest Brazeal*](https://www.goodtechthings.com/event-driven/)
+
 # Event-Driven Microservices Backend Case study
 
 Proof of Concept for a scalable simple trading Application, based on simplified event-driven microservices architecture and Docker containers. :whale:

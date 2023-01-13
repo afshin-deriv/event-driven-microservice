@@ -26,8 +26,8 @@ const {
 
 
 
-const STREAMS_KEY_TRADE   = "api";
-const STREAMS_KEY_PAYMENT = "payment_response";
+const STREAMS_KEY_TRADE   = "trade";
+const STREAMS_KEY_PAYMENT = "payment";
 const GROUP_NAME          = "trade-group";
 const CONSUMER_ID         = "trade-consumer-".concat(uuidv4());
 
