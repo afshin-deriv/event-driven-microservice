@@ -27,7 +27,7 @@ async function addUserDB (client_id) {
 async function delUserDB (client_id) {
     const pool = new Pool(credentials);
 
-    const result = await pool.query(`DELETE from client WHERE client_id = ${client_id}`);
+    const result = await pool.query(`DELETE from client WHERE client_id = '${client_id}'`);
     await pool.end();
 
     return result;

@@ -107,19 +107,23 @@ async function removeUser(request) {
         host: REDIS_HOST,
         port: REDIS_PORT,
     });
+    await delUserDB(request.user_id).then(function (result) {
+        let response;
+        if (result.rowCount > 0) {
+            response = JSON.stringify({
+                "status" : "OK",
+                "response": `user_id: ${request.user_id} removed.`
+            });
+        } else {
+            response = JSON.stringify({
+                "status" : "ERROR",
+                "response" : `User ${request.user_id} not found`
+            });
+        }
 
-    if (users.has(request.user_id)) {
-        users.delete(request.user_id);
-        const response = { "status" : "OK", 
-            "response" : `User ${request.user_id} with amount of ${request.amount} has been deleted`,
-            "id" : request.id};
-        await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-    } else {
-        const response = { "status" : "ERROR", 
-            "response" : `User ${request.user_id} not found`,
-            "id" : request.id};
-        await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-    }
+        sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
+    });
+
 }
 
 async function userInfo(request) {
