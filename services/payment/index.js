@@ -95,10 +95,9 @@ async function addUser(request) {
     });
 
     const id = uuidv4();
-    // users.set(id, 0);
-    const result = await addUserDB(id);
+    await addUserDB(id);
     const response = { "status" : "OK", 
-        "response" : `User with id ${id} has been created, result ${result}`,
+        "response" : `User with id ${id} has been created`,
         "id" : request.id};
     await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
 }
@@ -129,24 +128,30 @@ async function userInfo(request) {
         port: REDIS_PORT,
     });
 
-    if (users.has(request.user_id)) {
-        const response = { "status" : "OK", 
-            "response" : `User info of ${request.user_id}`,
-            "id" : request.id,
-            "user_id" : request.user_id,
-            "amount" : users.get(request.user_id)};
-        await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-    } else {
-        const response = { "status" : "ERROR", 
-            "response" : `User ${request.user_id} not found`,
-            "id" : request.id};
-        await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-    }
+    await infoUserDB(request.user_id).then(function (result) {
+        let response;
+        if (result.rowCount > 0) {
+            response = JSON.stringify({
+                "status" : "OK",
+                "user_id": result.rows.client_id,
+                "balance": result.rows.balance,
+                "created_at": result.rows.created_at,
+            });
+
+           } else {
+            response = JSON.stringify({
+                "status" : "ERROR",
+                "response" : `User ${request.user_id} not found`
+            });
+        }
+
+           sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
+        });
 }
 
 async function processRequest(message) {
       const request = JSON.parse(message);
-      switch(request.type.toLowerCase()) {
+      switch(request.type) {
         case "deposit": {
             await deposit(request);
             break;

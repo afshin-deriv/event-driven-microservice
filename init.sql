@@ -22,6 +22,7 @@ CREATE DATABASE payment;
 \c payment
 CREATE TABLE client (
     client_id  TEXT PRIMARY KEY,
+    balance    MONEY DEFAULT 0 NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -42,5 +43,5 @@ CREATE TABLE transaction (
     transaction_result TEXT
 );
 -- User
-CREATE USER docker  with encrypted password '123456';
-GRANT ALL PRIVILEGES ON DATABASE trade,payment,reporting  TO docker;
+ALTER USER postgres WITH PASSWORD '123456';
+

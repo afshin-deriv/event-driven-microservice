@@ -14,7 +14,7 @@ async function sendMessage(redis, message, channel, key) {
          if (err) {
              return console.error(err);
          }
-     }).then( r => console.log(`reply written to redis channel: ${channel}`));
+     });
 }
 
 
