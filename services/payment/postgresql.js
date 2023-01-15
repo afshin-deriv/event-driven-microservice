@@ -36,7 +36,7 @@ async function delUserDB (client_id) {
 async function infoUserDB (client_id) {
     const pool = new Pool(credentials);
 
-    const result = await pool.query(`SELECT client_id, balance, created_at from client WHERE client_id = '${client_id}'`);
+    const result = await pool.query(`SELECT client_id, balance, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI') AS created_at from client WHERE client_id = '${client_id}'`);
     await pool.end();
 
     return result;
