@@ -9,7 +9,7 @@ const {createStreamGroup,
 const STREAMS_KEY_PAYMENT = "payment";
 const GROUP_NAME          = "payment-group";
 const CONSUMER_ID         = "payment-consumer-".concat(uuidv4());
-const RESP_KEY    = "payment_response";
+const RESP_KEY            = "payment_response";
 const RESP_CHANNEL        = "payment";
 
 
@@ -72,7 +72,7 @@ async function withdraw(request) {
             await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
         } else {
             const response = { "status" : "ERROR", 
-                "response" : `User ${request.user_id} has not sufficent amount`,
+                "response" : `User ${request.user_id} has not sufficient amount`,
                 "id" : request.id};
             await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
         }
@@ -140,41 +140,28 @@ async function userInfo(request) {
 }
 
 async function processRequest(message) {
-    const redis_out = new Redis({
-        host: REDIS_HOST,
-        port: REDIS_PORT,
-    });
-
       const request = JSON.parse(message);
-      switch(request.type) {
-        case "DEPOSIT": {
+      switch(request.type.toLowerCase()) {
+        case "deposit": {
             await deposit(request);
             break;
         }
-        case "WITHDRAW":{
+        case "withdraw":{
             await withdraw(request);
             break;
         }
-        case "ADD_USER":{
+        case "add_user":{
             await addUser(request);
             break;
         }
-        case "REMOVE_USER":{
+        case "remove_user":{
             await removeUser(request);
             break;
         }
-        case "USER_INFO":{
+        case "user_info":{
             await userInfo(request);
             break;
         }
-        // IGNORE unknown requests for now!, we need to ACK the seen request in Redis
-
-        // default:{
-        //     const response = { "status" : "ERROR",
-        //                       "response" : `Undefined Type ${request.type}`,
-        //                       "id" : request.id};
-        //     await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-        // }
       }
 }
 

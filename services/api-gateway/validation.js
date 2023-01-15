@@ -5,14 +5,14 @@ function validateAndParse (data) {
         throw 'Invalid Request format';
     }
 
-    switch(data.type) {
-        case "ADD_USER": {
+    switch(data.type.toLowerCase()) {
+        case "add_user": {
             const jsonData = JSON.stringify({
                 "type": data.type,
             });
             return jsonData;
         }
-        case "REMOVE_USER":{
+        case "remove_user":{
             if (!data.user_id) throw 'Invalid Request format';
             const jsonData = JSON.stringify({
                 "user_id": data.user_id,
@@ -20,7 +20,7 @@ function validateAndParse (data) {
             });
             return jsonData;
         }
-        case "USER_INFO":{
+        case "user_info":{
             if (!data.user_id) throw 'Invalid Request format';
             const jsonData = JSON.stringify({
                 "user_id": data.user_id,
@@ -28,7 +28,7 @@ function validateAndParse (data) {
             });
             return jsonData;
         }
-        case "DEPOSIT":{
+        case "deposit":{
             if (!data.user_id && !data.amount) throw 'Invalid Request format';
             const jsonData = JSON.stringify({
                 "user_id": data.user_id,
@@ -37,7 +37,7 @@ function validateAndParse (data) {
             });
             return jsonData;
         }
-        case "WITHDRAW":{
+        case "withdraw":{
             if (!data.user_id && !data.amount) throw 'Invalid Request format';
             const jsonData = JSON.stringify({
                 "user_id": data.user_id,
@@ -46,7 +46,7 @@ function validateAndParse (data) {
             });
             return jsonData;
         }
-        case "BUY":{
+        case "buy":{
             if (!data.user_id && !data.amount && !data.symbol && !data.price) throw 'Invalid Request format';
             const jsonData = JSON.stringify({
                 "user_id": data.user_id,
@@ -57,7 +57,7 @@ function validateAndParse (data) {
             });
             return jsonData;
         }
-        case "SELL":{
+        case "sell":{
             if (!data.user_id && !data.amount && !data.symbol && !data.price) throw 'Invalid Request format';
             const jsonData = JSON.stringify({
                 "user_id": data.user_id,
@@ -71,8 +71,6 @@ function validateAndParse (data) {
         default:{
             throw 'Invalid Request format';
         }
-
-
     }
 }
 
