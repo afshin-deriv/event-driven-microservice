@@ -21,8 +21,7 @@ CREATE TABLE symbol (
 CREATE DATABASE payment;
 \c payment
 CREATE TABLE client (
-    client_id serial PRIMARY KEY,
-    fullname TEXT,
+    client_id  TEXT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -42,3 +41,6 @@ CREATE TABLE transaction (
     transaction_time TIMESTAMP,
     transaction_result TEXT
 );
+-- User
+CREATE USER docker  with encrypted password '123456';
+GRANT ALL PRIVILEGES ON DATABASE trade,payment,reporting  TO docker;

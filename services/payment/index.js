@@ -4,7 +4,9 @@ require('dotenv').config();
 const {createStreamGroup,
        readStreamGroup,
        sendMessage} = require('./redis.js');
-
+const {addUserDB,
+       delUserDB,
+       infoUserDB} = require('./postgresql.js');
 
 const STREAMS_KEY_PAYMENT = "payment";
 const GROUP_NAME          = "payment-group";
@@ -23,12 +25,14 @@ const redis_in = new Redis({
     port: REDIS_PORT,
 });
 
+(async () => {
+    await createStreamGroup(redis_in, STREAMS_KEY_PAYMENT, GROUP_NAME, CONSUMER_ID);
+})();
 
 // TODO: Use postgress
 const users = new Map();
 
 async function receiveMessages(redis, streamKey, groupName, consumerId, processMessage) {
-    await createStreamGroup(redis, streamKey, groupName, consumerId);
     while (true) {
         const [[, records]] = await readStreamGroup(redis, streamKey, groupName, consumerId);
         for (const [id, [, request]] of records) {
@@ -91,9 +95,10 @@ async function addUser(request) {
     });
 
     const id = uuidv4();
-    users.set(id, 0);
+    // users.set(id, 0);
+    const result = await addUserDB(id);
     const response = { "status" : "OK", 
-        "response" : `User with id ${id} has been created`,
+        "response" : `User with id ${id} has been created, result ${result}`,
         "id" : request.id};
     await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
 }

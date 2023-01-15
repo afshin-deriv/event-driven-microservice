@@ -24,6 +24,7 @@ services:
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
+      POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgres}
     restart: always
 
   payment:
@@ -34,6 +35,7 @@ services:
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
+      POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgres}
     restart: always
 
 
@@ -45,6 +47,7 @@ services:
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
+      POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgres}
     restart: always
 
   api-gateway:

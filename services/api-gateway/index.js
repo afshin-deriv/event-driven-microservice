@@ -34,7 +34,10 @@ const redis_out = new Redis({
 
 const port = 3000;
 const wss = new WebSocketServer.Server({ port: port });
-
+(async () => {
+  await createStreamGroup(redis_trade, TRADE_STREAMS_KEY, GROUP_NAME, CONSUMER_ID);
+  await createStreamGroup(redis_trade, PAYMENT_STREAMS_KEY, GROUP_NAME, CONSUMER_ID);
+})();
 
 wss.on("connection", ws => {
   console.log("New client connected");
@@ -51,7 +54,6 @@ wss.on("connection", ws => {
         }
         await receiveMessages(redis_payment, PAYMENT_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, showResponse, ws);
         await receiveMessages(redis_trade, TRADE_STREAMS_KEY, GROUP_NAME, CONSUMER_ID, showResponse, ws);
-
       })();
 
       console.table({req_type:req.type});
@@ -88,7 +90,6 @@ async function showResponse(message, ws) {
 }
 
 async function receiveMessages(redis, streamKey, groupName, consumerId, processMessage, websocket) {
-  await createStreamGroup(redis, streamKey, groupName, consumerId);
   while (true) {
     const [[, records]] = await readStreamGroup(redis, streamKey, groupName, consumerId);
     for (const [id, [, request]] of records) {

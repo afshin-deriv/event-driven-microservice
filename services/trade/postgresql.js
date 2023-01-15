@@ -4,14 +4,14 @@ require('dotenv').config();
 
 const POSTGRESQL_HOST = process.env.POSTGRESQL_HOST || 'localhost';
 const POSTGRESQL_USER = process.env.POSTGRESQL_USER || 'postgres';
-const POSTGRESQL_PASS = process.env.POSTGRESQL_PASS || '';
+const POSTGRESQL_PASS = process.env.POSTGRESQL_PASS || "";
 const POSTGRESQL_PORT = process.env.POSTGRESQL_PORT || '5432';
 
 const credentials = {
     user: POSTGRESQL_USER,
     host: POSTGRESQL_HOST,
     database: "trade",
-    password: POSTGRESQL_PASS,
+    // password: POSTGRESQL_PASS,
     port: POSTGRESQL_PORT,
 };
 
