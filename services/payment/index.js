@@ -133,9 +133,7 @@ async function userInfo(request) {
         if (result.rowCount > 0) {
             response = JSON.stringify({
                 "status" : "OK",
-                "user_id": result.rows.client_id,
-                "balance": result.rows.balance,
-                "created_at": result.rows.created_at,
+				"response": `"user_id": ${result.rows.client_id}, "balance": ${result.rows.balance}, "created_at": ${result.rows.created_at}`
             });
 
            } else {
