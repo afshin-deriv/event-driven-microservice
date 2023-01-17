@@ -42,9 +42,29 @@ async function infoUserDB (client_id) {
     return result;
 }
 
+async function depositDB (client_id, added_balance) {
+    const pool = new Pool(credentials);
+
+    const result = await pool.query(`UPDATE client SET balance = balance + money('${added_balance}') WHERE client_id ='${client_id}' and '${added_balance}' > 0`);
+    await pool.end();
+
+    return result;
+}
+
+async function withdrawDB (client_id, added_balance) {
+    const pool = new Pool(credentials);
+
+    const result = await pool.query(`UPDATE client SET balance = balance - money('${added_balance}') WHERE client_id ='${client_id}' and balance - money('${added_balance}') >= money(0.0)`);
+    await pool.end();
+
+    return result;
+}
+
 
 module.exports = {
     addUserDB,
     delUserDB,
-    infoUserDB
+    infoUserDB,
+    depositDB,
+    withdrawDB
 };

@@ -6,7 +6,9 @@ const {createStreamGroup,
        sendMessage} = require('./redis.js');
 const {addUserDB,
        delUserDB,
-       infoUserDB} = require('./postgresql.js');
+       infoUserDB,
+       depositDB,
+       withdrawDB} = require('./postgresql.js');
 
 const STREAMS_KEY_PAYMENT = "payment";
 const GROUP_NAME          = "payment-group";
@@ -47,18 +49,36 @@ async function deposit(request) {
         port: REDIS_PORT,
     });
 
-    if (users.has(request.user_id)) {
-        users.set(request.user_id, users.get(request.user_id) + request.amount);
-        const response = { "status" : "OK", 
-            "response" : `Deposit to account ${request.user_id} with amount of ${request.amount} has been done`,
-            "id" : request.id};
+    let response;
+    try {
+        await depositDB(request.user_id, request.amount).then(function (result) {
+
+            if (result.rowCount > 0) {
+                response = {
+                    "status" : "OK",
+                    "response": `Deposit to account ${request.user_id} with amount of ${request.amount} has been done`,
+                    "id" : request.id
+                };
+            } else {
+                response = {
+                    "status" : "ERROR",
+                    "response" : `User ${request.user_id} not found`
+                };
+            }
+
+            sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
+        });
+    } catch (err) {
+        response = {
+            "status" : "ERROR",
+            "response" : `Request is invalid!`
+        };
         await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-    } else {
-        const response = { "status" : "ERROR", 
-            "response" : `User ${request.user_id} not found`,
-            "id" : request.id};
-        await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
+
     }
+
+
+
 }
 
 async function withdraw(request) {
@@ -67,25 +87,33 @@ async function withdraw(request) {
         port: REDIS_PORT,
     });
 
-    if (users.has(request.user_id)) {
-        if (users.get(request.user_id) >= request.amount) {
-            users.set(request.user_id, users.get(request.user_id) - request.amount);
-            const response = { "status" : "OK", 
-                "response" : `Withdraw from account ${request.user_id} with amount of ${request.amount} has been done`,
-                "id" : request.id};
-            await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-        } else {
-            const response = { "status" : "ERROR", 
-                "response" : `User ${request.user_id} has not sufficient amount`,
-                "id" : request.id};
-            await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-        }
-    } else {
-        const response = { "status" : "ERROR", 
-            "response" : `User ${request.user_id} not found`,
-            "id" : request.id};
-        await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
-    }
+    let response;
+    try {
+        await withdrawDB(request.user_id, request.amount).then(function (result) {
+
+            if (result.rowCount > 0) {
+                response = {
+                    "status": "OK",
+                    "response": `Withdraw from account ${request.user_id} with amount of ${request.amount} has been done`,
+                    "id": request.id
+                };
+            } else {
+                response = {
+                    "status": "ERROR",
+                    "response": `User ${request.user_id} has not sufficient amount`
+                };
+            }
+
+            sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
+        });
+    }catch (err) {
+    response = {
+        "status" : "ERROR",
+        "response" : `Request is invalid!`
+    };
+    await sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
+
+}
 }
 
 async function addUser(request) {
@@ -110,15 +138,15 @@ async function removeUser(request) {
     await delUserDB(request.user_id).then(function (result) {
         let response;
         if (result.rowCount > 0) {
-            response = JSON.stringify({
+            response = {
                 "status" : "OK",
                 "response": `user_id: ${request.user_id} removed.`
-            });
+            };
         } else {
-            response = JSON.stringify({
+            response = {
                 "status" : "ERROR",
                 "response" : `User ${request.user_id} not found`
-            });
+            };
         }
 
         sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
@@ -135,16 +163,16 @@ async function userInfo(request) {
     await infoUserDB(request.user_id).then(function (result) {
         let response;
         if (result.rowCount > 0) {
-            response = JSON.stringify({
+            response = {
                 "status" : "OK",
-				"response": `user_id: ${result.rows[0].client_id}, balance: ${result.rows[0].balance}, created_at: ${result.rows[0].created_at}`
-            });
+                "response": `user_id: ${result.rows[0].client_id}, balance: ${result.rows[0].balance}, created_at: ${result.rows[0].created_at}`
+            };
 
            } else {
-            response = JSON.stringify({
+            response = {
                 "status" : "ERROR",
                 "response" : `User ${request.user_id} not found`
-            });
+            };
         }
 
            sendMessage(redis_out, JSON.stringify(response), RESP_CHANNEL, RESP_KEY);
