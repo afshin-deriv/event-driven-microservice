@@ -14,7 +14,8 @@ services:
       PGDATA: /data/postgres
     volumes:
     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    - ./data:/data
+    - ./data/markets.csv:/data/markets.csv
+    - ./data/symbols.csv:/data/symbols.csv
     restart: unless-stopped
 
   trade:
@@ -38,7 +39,6 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       POSTGRESQL_HOST: ${POSTGRESQL_HOST:-postgres}
     restart: always
-
 
   reporting:
     depends_on:
@@ -64,3 +64,5 @@ services:
       - "3000:3000"
     restart: always
 
+volumes:
+    postgres: {}
