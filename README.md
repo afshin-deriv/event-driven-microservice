@@ -43,7 +43,14 @@ The Compose file contains the following environment variables:
 $ npm install -g wscat
 $ wscat -c 127.0.0.1:3000
 
-{"user_id":<USER-ID>, "type": "SELL | BUY", "amount": "<AMOUNT>", "symbol": "<SYMBOL-NAME>"}
+> {"type": "add_user"}
+< {"status":"OK","response":"User with id b1032345-b16e-4a47-879a-5186009d8d6c has been created"}
+
+> {"type": "deposit", "user_id": "b1032345-b16e-4a47-879a-5186009d8d6c", "amount": 150}
+< {"status":"OK","response":"Deposit to account b1032345-b16e-4a47-879a-5186009d8d6c with amount of 150 has been done"}
+
+> {"type": "user_info", "user_id": "b1032345-b16e-4a47-879a-5186009d8d6c"}
+< {"status":"OK","response":"user_id: b1032345-b16e-4a47-879a-5186009d8d6c, balance: $150.00, created_at: 2023-01-18 04:31"}
 ```
 ### Payment Service
 Read request from **payment** stream channel, and response in **payment-response** channel
