@@ -1,4 +1,3 @@
-begin;
 
 -- trade database
 CREATE DATABASE trade;
@@ -48,8 +47,7 @@ CREATE TABLE transaction (
     transaction_time TIMESTAMP,
     transaction_result TEXT
 );
+
 -- User
 ALTER USER postgres WITH PASSWORD '123456';
-
-commit;
 
