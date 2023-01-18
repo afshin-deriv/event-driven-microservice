@@ -1,21 +1,27 @@
+begin;
+
 -- trade database
 CREATE DATABASE trade;
 \c trade
 CREATE TABLE market (
-    market_id serial PRIMARY KEY,
+    market_id BIGSERIAL PRIMARY KEY,
     market_name TEXT NOT NULL,
     open_from TIME NOT NULL,
     open_until TIME NOT NULL
 );
 
 CREATE TABLE symbol (
-    symbol_id serial PRIMARY KEY,
+    symbol_id BIGSERIAL PRIMARY KEY,
     symbol_name TEXT NOT NULL,
     market_id BIGSERIAL NOT NULL,
     CONSTRAINT fk_market
       FOREIGN KEY(market_id)
 	  REFERENCES market(market_id)
 );
+
+-- Load initial values (test only)
+\copy market from '/data/markets.csv' with delimiter ',' null ''
+\copy symbol from '/data/symbols.csv' with delimiter ',' null ''
 
 -- trade payment
 CREATE DATABASE payment;
@@ -27,7 +33,7 @@ CREATE TABLE client (
 );
 
 CREATE TABLE asset (
-    asset_id serial PRIMARY KEY,
+    asset_id BIGSERIAL PRIMARY KEY,
     asset_name TEXT NOT NULL,
     client_id int NOT NULL,
     amount INTEGER NOT NULL
@@ -44,4 +50,6 @@ CREATE TABLE transaction (
 );
 -- User
 ALTER USER postgres WITH PASSWORD '123456';
+
+commit;
 
