@@ -99,12 +99,6 @@ async function processTradeMessage (id, message) {
           await askPayment(redis_trade, "payment", "payment", JSON.stringify(request_deposit));
           break;
       }
-      /* If received message isn't for trade service, simply ignore it! */
-
-      // default: {
-      //     const resp = { "status" : "ERROR" , "response" : "Undefined trade command" };
-      //     await sendResponse(JSON.stringify(resp));
-      // }
   }
 }
 
